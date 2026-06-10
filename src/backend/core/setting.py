@@ -1,23 +1,21 @@
 import os
 import logging
-from pathlib import Path
 from dotenv import load_dotenv
+
+from src.backend.core.constants import Paths
 
 logger = logging.getLogger(__name__)
 
-# Resolve project root (assuming this is in Backend/src/settings.py)
-project_root = Path(__file__).resolve().parent.parent.parent
-env_path = project_root / ".env"
-
-if env_path.exists():
-    load_dotenv(dotenv_path=env_path)
+if Paths.ENV_PATH.exists():
+    load_dotenv(dotenv_path=Paths.ENV_PATH)
     logger.info("Loaded .env file.")
 else:
-    logger.warning(f"No .env file found at {env_path}.")
+    logger.warning(f"No .env file found at {Paths.ENV_PATH}.")
 
 class Settings:
     """Global configuration settings."""
     HF_TOKEN = os.getenv("HF_TOKEN")
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     
     @classmethod
     def validate(cls):
