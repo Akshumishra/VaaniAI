@@ -15,6 +15,11 @@ else:
 class Settings:
     """Global configuration settings."""
     HF_TOKEN = os.getenv("HF_TOKEN")
+    OPEN_API_KEY = os.getenv("OPEN_API_KEY")
+    WEATHER_API = os.getenv("WEATHER_API")
+    TAVILY_API = os.getenv("TAVILY_API")
+    WEATHER_URL = os.getenv("WEATHER_URL")
+    TAVILY_URL = os.getenv("TAVILY_URL")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     
     @classmethod
