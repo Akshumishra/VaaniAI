@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class Tool:
     def __init__(self, func, description: str = None, args_schema=None):
         self.name = func.__name__
@@ -6,18 +11,21 @@ class Tool:
         self.args_schema = args_schema
 
     def execute(self, **kwargs):
+        logger.debug(f"Executing tool '{self.name}' with args: {kwargs}")
         return self.func(**kwargs)
 
     def schema(self):
         if self.args_schema is None:
             return {
                 "type": "function",
-                "name": self.name,
-                "description": self.description,
-                "parameters": {
-                    "type": "object",
-                    "properties": {},
-                },
+                "function": {
+                    "name": self.name,
+                    "description": self.description,
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                    },
+                }
             }
 
         properties = {}
@@ -41,13 +49,15 @@ class Tool:
 
         return {
             "type": "function",
-            "name": self.name,
-            "description": self.description,
-            "parameters": {
-                "type": "object",
-                "properties": properties,
-                "required": required,
-            },
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": required,
+                },
+            }
         }
 
     @staticmethod

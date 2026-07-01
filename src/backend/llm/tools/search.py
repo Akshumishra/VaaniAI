@@ -1,3 +1,4 @@
+import requests
 from typing import Dict, Any
 
 from src.backend.core.setting import Settings
