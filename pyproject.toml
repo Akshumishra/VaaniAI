@@ -10,4 +10,5 @@ dependencies = [
     "scipy==1.17.1",
     "faster-whisper==1.2.1",
     "python-dotenv>=1.2.2",
+    "openai>=1.12.0",
 ]

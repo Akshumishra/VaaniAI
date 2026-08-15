@@ -15,11 +15,14 @@ else:
 class Settings:
     """Global configuration settings."""
     HF_TOKEN = os.getenv("HF_TOKEN")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_API_KEY")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     
     @classmethod
     def validate(cls):
         if not cls.HF_TOKEN:
             logger.warning("HF_TOKEN is not set in the environment.")
+        if not cls.OPENAI_API_KEY:
+            logger.warning("OPENAI_API_KEY is not set in the environment. LLM module may fail.")
 
 Settings.validate()

@@ -26,6 +26,12 @@ class VoiceManager:
         exe_name = "piper.exe" if platform.system() == "Windows" else "piper"
         
         self.piper_exe_path = piper_exe_path or (Paths.BIN_DIR / "piper" / exe_name)
+        
+        # Check if it was extracted into a nested 'piper' directory from the archive
+        nested_path = self.piper_exe_path.parent / "piper" / exe_name
+        if not self.piper_exe_path.exists() and nested_path.exists():
+            self.piper_exe_path = nested_path
+            
         self.models_dir = models_dir or (Paths.MODELS_DIR / "piper")
         self.default_voice = TTS.PIPER_DEFAULT_VOICE
 

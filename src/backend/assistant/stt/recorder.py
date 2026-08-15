@@ -6,7 +6,7 @@ import sounddevice as sd
 from scipy.io import wavfile
 
 from src.backend.assistant.stt.exceptions import AudioRecordingError, AudioValidationError
-from src.backend.core.constants import Audio
+from src.backend.core.constants import Audio, Recording
 
 logger = logging.getLogger(__name__)
 
@@ -16,26 +16,51 @@ class AudioRecorder:
         self.sample_rate = sample_rate
         self.channels = channels
 
-    def record_audio(self, duration_seconds: int, output_path: Path | None = None) -> Path:
-        """Records audio for a given duration and saves to a WAV file."""
-        if duration_seconds <= 0:
-            raise AudioValidationError(f"Invalid duration: {duration_seconds}s. Must be > 0.")
-
-        logger.info(f"Starting recording for {duration_seconds} seconds...")
+    def record_audio(self, output_path: Path | None = None) -> Path:
+        """Records audio until silence is detected and saves to a WAV file."""
+        logger.info("Listening... (Speak now)")
+        
+        recorded_frames = []
+        silence_frames = 0
+        silence_threshold_frames = int(Recording.SILENCE_DURATION_SECONDS * self.sample_rate / Recording.CHUNK_SIZE)
+        max_frames = int(Recording.MAX_DURATION_SECONDS * self.sample_rate / Recording.CHUNK_SIZE)
         
         try:
-            recording = sd.rec(
-                int(duration_seconds * self.sample_rate),
-                samplerate=self.sample_rate,
-                channels=self.channels,
+            with sd.InputStream(
+                samplerate=self.sample_rate, 
+                channels=self.channels, 
                 dtype=np.dtype(Audio.DTYPE)
-            )
-            sd.wait()
-            logger.info("Recording completed.")
+            ) as stream:
+                while True:
+                    data, overflowed = stream.read(Recording.CHUNK_SIZE)
+                    if overflowed:
+                        logger.warning("Audio buffer overflowed.")
+                    
+                    recorded_frames.append(data.copy())
+                    
+                    # Calculate volume (max amplitude in the chunk)
+                    volume = np.max(np.abs(data))
+                    
+                    if volume < Recording.SILENCE_THRESHOLD:
+                        silence_frames += 1
+                    else:
+                        silence_frames = 0
+                        
+                    # Stop if silence duration is reached and we've recorded at least a little bit
+                    if silence_frames > silence_threshold_frames and len(recorded_frames) > silence_threshold_frames:
+                        logger.info("Silence detected. Stopping recording.")
+                        break
+                        
+                    if len(recorded_frames) >= max_frames:
+                        logger.info("Max duration reached. Stopping recording.")
+                        break
+                        
         except Exception as error:
             logger.exception("Failed during audio recording.")
             raise AudioRecordingError("Failed to record audio from microphone.") from error
 
+        # Concatenate frames to a single numpy array
+        recording = np.concatenate(recorded_frames, axis=0)
         return self._save_to_wav(recording, output_path)
 
     def _save_to_wav(self, audio_data: np.ndarray, output_path: Path | None) -> Path:

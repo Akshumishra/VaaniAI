@@ -7,7 +7,7 @@ class Paths:
     GENERATED_DIR = BASE_DIR / "generated"
     MODELS_DIR = BASE_DIR / "models"
     BIN_DIR = BASE_DIR / "bin"
-    ENV_PATH = SRC_DIR / ".env"
+    ENV_PATH = BASE_DIR / ".env"
     AUDIO_FILENAME = "audio.wav"
 
 class Audio:
@@ -26,7 +26,10 @@ class STT:
     BEAM_SIZE = 5
 
 class Recording:
-    DEFAULT_DURATION_SECONDS = 5
+    MAX_DURATION_SECONDS = 30
+    SILENCE_THRESHOLD = 500  # Amplitude threshold for int16
+    SILENCE_DURATION_SECONDS = 1.5  # Stop recording after 1.5s of silence
+    CHUNK_SIZE = 1024
 
 class TTS:
     PIPER_DEFAULT_VOICE = "en_US-lessac-medium"
@@ -36,3 +39,8 @@ class TTS:
     PIPER_WINDOWS_URL = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_windows_amd64.zip"
     PIPER_LINUX_URL = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz"
     PIPER_MACOS_URL = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_macos_aarch64.tar.gz"
+
+class LLM:
+    DEFAULT_MODEL = "gpt-4.1-mini"
+    MAX_TOKENS = 200
+    TEMPERATURE = None

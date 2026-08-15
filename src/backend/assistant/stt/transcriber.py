@@ -1,15 +1,28 @@
 import logging
 import os
+import site
+import platform
 from pathlib import Path
-from dotenv import load_dotenv
 from faster_whisper import WhisperModel
 
 from src.backend.assistant.stt.exceptions import TranscriptionError, AudioValidationError
 from src.backend.core.constants import STT
 from src.backend.core.setting import Settings
 
+
 logger = logging.getLogger(__name__)
 
+if platform.system() == "Windows":
+    try:
+        # Look for the nvidia folder directly in all Python site-packages directories
+        for site_pkg in site.getsitepackages() + [site.getusersitepackages()]:
+            nvidia_base = Path(site_pkg) / "nvidia"
+            if nvidia_base.exists():
+                for dll_dir in nvidia_base.rglob("bin"):
+                    if hasattr(os, "add_dll_directory"):
+                        os.add_dll_directory(str(dll_dir))
+    except Exception as e:
+        pass # Silently fail if something goes wrong, we'll just fall back to CPU anyway
 
 class AudioTranscriber:
     def __init__(
