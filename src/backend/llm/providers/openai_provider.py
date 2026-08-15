@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class OpenAIProvider(LLMProvider):
     """LLM Provider implementation using the OpenAI API."""
 
-    def __init__(self, api_key: str = None, model: str = LLM.DEFAULT_MODEL):
+    def __init__(self, model: str = LLM.DEFAULT_MODEL):
         """
         Initializes the OpenAI provider.
 
@@ -20,7 +20,7 @@ class OpenAIProvider(LLMProvider):
             api_key: The OpenAI API key. If None, it will be fetched from Settings.
             model: The name of the model to use (e.g., 'gpt-4o-mini').
         """
-        self.api_key = api_key or Settings.OPENAI_API_KEY
+        self.api_key = Settings.OPENAI_API_KEY
         self.model = model
         
         if not self.api_key:
@@ -47,22 +47,69 @@ class OpenAIProvider(LLMProvider):
             LLMGenerationError: If the provider fails to generate a valid response.
         """
         max_tokens = kwargs.get('max_tokens', LLM.MAX_TOKENS)
+        temperature = kwargs.get('temperature')
 
         try:
-            logger.debug(f"Sending {len(messages)} messages to OpenAI API.")
+            # We accept 'tools' in kwargs
+            tools = kwargs.get('tools')
+            tool_map = kwargs.get('tool_map', {})
             
-            call_kwargs = {
-                "model": self.model,
-                "messages": messages,
-                "max_completion_tokens": max_tokens,
-            }
+            while True:
+                logger.debug(f"Sending {len(messages)} messages to OpenAI API.")
+                call_kwargs = {
+                    "model": self.model,
+                    "messages": messages,
+                    "max_completion_tokens": max_tokens,
+                }
                 
-            response = self.client.chat.completions.create(**call_kwargs)
-            
-            if not response.choices:
-                raise LLMGenerationError("No choices returned from OpenAI API.")
+                # Omit temperature if it's None
+                if temperature is not None:
+                    call_kwargs["temperature"] = temperature
+                    
+                if tools:
+                    call_kwargs["tools"] = tools
+                    
+                response = self.client.chat.completions.create(**call_kwargs)
                 
-            return response.choices[0].message.content.strip()
+                if not response.choices:
+                    raise LLMGenerationError("No choices returned from OpenAI API.")
+                    
+                message = response.choices[0].message
+                
+                if getattr(message, "tool_calls", None):
+                    # Append the tool calls assistant message
+                    messages.append(message.model_dump(exclude_none=True))
+                    
+                    # Execute each tool call
+                    for tool_call in message.tool_calls:
+                        func_name = tool_call.function.name
+                        func_args = tool_call.function.arguments
+                        
+                        logger.info(f"LLM called tool: {func_name} with args: {func_args}")
+                        
+                        if func_name in tool_map:
+                            import json
+                            try:
+                                args_dict = json.loads(func_args)
+                                tool_result = tool_map[func_name](**args_dict)
+                            except Exception as e:
+                                tool_result = f"Error executing tool: {e}"
+                        else:
+                            tool_result = f"Tool '{func_name}' not found."
+                            
+                        # Append the tool response
+                        messages.append({
+                            "role": "tool",
+                            "tool_call_id": tool_call.id,
+                            "name": func_name,
+                            "content": str(tool_result),
+                        })
+                    
+                    # After adding tool results, loop again to let the LLM give the final answer
+                    continue
+                
+                # If no tool calls, return the final text
+                return message.content.strip() if message.content else ""
 
         except APIConnectionError as e:
             logger.error(f"Connection error to OpenAI API: {e}")

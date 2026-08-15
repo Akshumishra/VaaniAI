@@ -17,6 +17,7 @@ class Settings:
     HF_TOKEN = os.getenv("HF_TOKEN")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_API_KEY")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+    TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
     
     @classmethod
     def validate(cls):

@@ -28,13 +28,17 @@ class ConversationManager:
         self.messages.append({"role": "user", "content": content})
         self._trim_history()
 
-    def add_assistant_message(self, content: str):
-        """Adds a message from the assistant."""
-        self.messages.append({"role": "assistant", "content": content})
+    def add_assistant_message(self, text: str):
+        """Appends an assistant message to the history."""
+        self.messages.append({"role": "assistant", "content": text})
+        
+    def add_message(self, message: Dict[str, Any]):
+        """Appends an arbitrary message object to the history (e.g. tool calls)."""
+        self.messages.append(message)
         self._trim_history()
 
     def get_messages(self) -> List[Dict[str, Any]]:
-        """Returns the current list of messages."""
+        """Returns the current conversation history."""
         return self.messages
 
     def clear_history(self):
