@@ -1,12 +1,13 @@
 import logging
 from src.backend.assistant.stt.recorder import AudioRecorder
 from src.backend.assistant.stt.transcriber import AudioTranscriber
-from src.backend.llm.providers.openai_provider import OpenAIProvider
+from src.backend.llm.agent_core.agent import Agent
+from src.backend.llm.agent_core.prompts import SystemPrompts
 from src.backend.llm.agent_core.conversation import ConversationManager
 from src.backend.assistant.tts.speaker import TextToSpeech
 from src.backend.core.constants import Paths
-from src.backend.llm.tools.web_search import WEB_SEARCH_SCHEMA, execute_web_search
-from src.backend.llm.tools.weather import WEATHER_SCHEMA, execute_weather_check
+from src.backend.llm.tools.web_search import web_search_tool
+from src.backend.llm.tools.weather import weather_tool
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,10 @@ class VoiceAssistant:
         logger.info("Initializing Voice Assistant components...")
         self.recorder = AudioRecorder()
         self.transcriber = AudioTranscriber()
-        self.llm_provider = OpenAIProvider()
+        self.agent = Agent(system_prompt=SystemPrompts.get_default_prompt())
+        self.agent.add_tool(web_search_tool)
+        self.agent.add_tool(weather_tool)
+        
         self.conversation = ConversationManager()
         self.tts = TextToSpeech()
         
@@ -49,16 +53,7 @@ class VoiceAssistant:
             
             # 3. LLM Response
             self.conversation.add_user_message(text)
-            
-            response = self.llm_provider.generate_response(
-                self.conversation.get_messages(),
-                tools=[WEB_SEARCH_SCHEMA, WEATHER_SCHEMA],
-                tool_map={
-                    "web_search": execute_web_search,
-                    "get_current_weather": execute_weather_check
-                }
-            )
-            
+            response, tool_calls = self.agent.invoke(self.conversation.get_messages())
             self.conversation.add_assistant_message(response)
             
             print(f"VaaniAI: {response}\n")

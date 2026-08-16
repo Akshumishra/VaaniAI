@@ -6,24 +6,13 @@ from src.backend.core.setting import Settings
 
 logger = logging.getLogger(__name__)
 
-# Define the JSON schema for OpenAI to understand this tool
-WEB_SEARCH_SCHEMA = {
-    "type": "function",
-    "function": {
-        "name": "web_search",
-        "description": "Searches the web for real-time information to answer the user's question.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "The search query to look up.",
-                }
-            },
-            "required": ["query"],
-        },
-    },
-}
+from src.backend.llm.agent_core.tools import Tool
+from src.backend.llm.agent_core.arg_schema import ArgsSchema
+
+class WebSearchSchema:
+    args = [
+        ("query", ArgsSchema(type=str, description="The search query to look up."))
+    ]
 
 
 def execute_web_search(query: str) -> str:
@@ -66,3 +55,9 @@ def execute_web_search(query: str) -> str:
     except Exception as e:
         logger.exception("Failed to execute web search.")
         return f"Error executing web search: {e}"
+
+web_search_tool = Tool(
+    func=execute_web_search,
+    description="Searches the web for real-time information to answer the user's question.",
+    args_schema=WebSearchSchema
+)

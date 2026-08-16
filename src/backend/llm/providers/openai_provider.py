@@ -50,7 +50,6 @@ class OpenAIProvider(LLMProvider):
         temperature = kwargs.get('temperature')
 
         try:
-            # We accept 'tools' in kwargs
             tools = kwargs.get('tools')
             tool_map = kwargs.get('tool_map', {})
             
@@ -62,7 +61,6 @@ class OpenAIProvider(LLMProvider):
                     "max_completion_tokens": max_tokens,
                 }
                 
-                # Omit temperature if it's None
                 if temperature is not None:
                     call_kwargs["temperature"] = temperature
                     
@@ -77,10 +75,8 @@ class OpenAIProvider(LLMProvider):
                 message = response.choices[0].message
                 
                 if getattr(message, "tool_calls", None):
-                    # Append the tool calls assistant message
                     messages.append(message.model_dump(exclude_none=True))
                     
-                    # Execute each tool call
                     for tool_call in message.tool_calls:
                         func_name = tool_call.function.name
                         func_args = tool_call.function.arguments
@@ -97,7 +93,6 @@ class OpenAIProvider(LLMProvider):
                         else:
                             tool_result = f"Tool '{func_name}' not found."
                             
-                        # Append the tool response
                         messages.append({
                             "role": "tool",
                             "tool_call_id": tool_call.id,
@@ -105,10 +100,8 @@ class OpenAIProvider(LLMProvider):
                             "content": str(tool_result),
                         })
                     
-                    # After adding tool results, loop again to let the LLM give the final answer
                     continue
                 
-                # If no tool calls, return the final text
                 return message.content.strip() if message.content else ""
 
         except APIConnectionError as e:

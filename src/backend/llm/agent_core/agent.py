@@ -17,8 +17,8 @@ class Agent:
         max_iteration: int = Constants.DEFAULT_MAX_ITERATION,
         max_tool_call: int = Constants.DEFAULT_MAX_TOOL_CALLS,
     ):
-        self.client = OpenAI(api_key=Settings.GEMINI_API_KEY, base_url=Constants.GEMINI_BASE_URL)
-        self.client_async = AsyncOpenAI(api_key=Settings.GEMINI_API_KEY, base_url=Constants.GEMINI_BASE_URL)
+        self.client = OpenAI(api_key=Settings.OPENAI_API_KEY)
+        self.client_async = AsyncOpenAI(api_key=Settings.OPENAI_API_KEY)
         self.system_prompt = system_prompt
         self.model = model
         self.temperature = temperature
