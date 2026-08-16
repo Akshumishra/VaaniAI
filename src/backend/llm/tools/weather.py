@@ -1,41 +1,20 @@
 import logging
 import httpx
-from typing import Dict, Any
-
 from src.backend.core.setting import Settings
+from src.backend.llm.agent_core.tools import Tool
+from src.backend.llm.agent_core.arg_schema import ArgsSchema
 
 logger = logging.getLogger(__name__)
 
 WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 
-WEATHER_SCHEMA = {
-    "type": "function",
-    "function": {
-        "name": "get_current_weather",
-        "description": "Fetches the current weather for a specified location.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "location": {
-                    "type": "string",
-                    "description": "The city and state/country, e.g., 'San Francisco, CA' or 'London, UK'",
-                }
-            },
-            "required": ["location"],
-        },
-    },
-}
+class WeatherSchema:
+    args = [
+        ("location", ArgsSchema(type=str, description="The city and state/country, e.g., 'San Francisco, CA' or 'London, UK'"))
+    ]
 
 def execute_weather_check(location: str) -> str:
-    """
-    Fetches the current weather from OpenWeatherMap.
-    
-    Args:
-        location: The location string to check.
-        
-    Returns:
-        A formatted string describing the weather or an error message.
-    """
+    """Fetches the current weather from OpenWeatherMap."""
     logger.info(f"Fetching weather for: '{location}'")
     
     if not Settings.WEATHERAPI_KEY:
@@ -43,7 +22,6 @@ def execute_weather_check(location: str) -> str:
         return "Error: The WeatherAPI key is missing. I cannot check the weather."
 
     try:
-        # OpenWeatherMap requires 'appid' and 'q' parameters, and 'units=metric' for Celsius
         params = {
             "appid": Settings.WEATHERAPI_KEY,
             "q": location,
@@ -84,3 +62,10 @@ def execute_weather_check(location: str) -> str:
     except Exception as e:
         logger.exception("Failed to parse weather data.")
         return f"Error parsing weather data: {e}"
+
+# Export the Tool instance
+weather_tool = Tool(
+    func=execute_weather_check,
+    description="Fetches the current weather for a specified location.",
+    args_schema=WeatherSchema
+)
