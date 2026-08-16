@@ -6,6 +6,7 @@ from src.backend.llm.agent_core.conversation import ConversationManager
 from src.backend.assistant.tts.speaker import TextToSpeech
 from src.backend.core.constants import Paths
 from src.backend.llm.tools.web_search import WEB_SEARCH_SCHEMA, execute_web_search
+from src.backend.llm.tools.weather import WEATHER_SCHEMA, execute_weather_check
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +52,11 @@ class VoiceAssistant:
             
             response = self.llm_provider.generate_response(
                 self.conversation.get_messages(),
-                tools=[WEB_SEARCH_SCHEMA],
-                tool_map={"web_search": execute_web_search}
+                tools=[WEB_SEARCH_SCHEMA, WEATHER_SCHEMA],
+                tool_map={
+                    "web_search": execute_web_search,
+                    "get_current_weather": execute_weather_check
+                }
             )
             
             self.conversation.add_assistant_message(response)
