@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaaniAI - Premium Voice Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glass-container">
+        <header>
+            <h1 class="gradient-text"> VaaniAI </h1>
+            <p>Your Intelligent Voice Assistant</p>
+        </header>
+
+        <main id="chat-container">
+            <div id="chat-box">
+                <div class="message system">
+                    <div class="bubble">Hello! I am Vaani. Press the microphone button and start speaking!</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="record-btn" class="glow-button">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                </button>
+                <div id="status">Ready</div>
+            </div>
+        </main>
+    </div>
+    <audio id="audio-player" autoplay></audio>
+
+    <script src="app.js"></script>
+</body>
+</html>
