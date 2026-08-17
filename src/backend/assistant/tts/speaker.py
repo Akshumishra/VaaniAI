@@ -19,20 +19,27 @@ class TextToSpeech:
     def __init__(self, voice_manager: VoiceManager | None = None):
         self.voice_manager = voice_manager or VoiceManager()
 
-    def speak(self, text: str, voice_name: str | None = None) -> None:
+    def speak(self, text: str, voice_name: str | None = None, play_local: bool = True) -> str | None:
         """
         Synthesizes text to speech and plays the audio.
         
         Args:
             text: The input string to convert to speech.
             voice_name: The voice model to use. Uses default if None.
+            play_local: If True, plays through speakers and deletes file. If False, returns file path.
             
         Raises:
             ValueError: If the text is empty or whitespace.
             TextToSpeechError: If speech generation fails.
             AudioPlaybackError: If audio playback fails.
+            
+        Returns:
+            String path to the audio file if play_local is False, else None.
         """
         wav_path = self.generate_audio(text, voice_name)
+        if not play_local:
+            return str(wav_path)
+            
         try:
             self.play_audio(wav_path)
         finally:
