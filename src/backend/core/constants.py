@@ -17,7 +17,7 @@ class Audio:
     FILE_SUFFIX = ".wav"
 
 class STT:
-    MODEL_NAME = "base"
+    MODEL_NAME = "medium"
     LANGUAGE = "en"
     TASK = "transcribe"
     DEVICE = "cuda"

@@ -1,14 +1,14 @@
 import logging
 import subprocess
 import tempfile
-from pathlib import Path
-
 import sounddevice as sd
 from scipy.io import wavfile
+from pathlib import Path
 
 from src.backend.assistant.tts.exceptions import TextToSpeechError, AudioPlaybackError
 from src.backend.assistant.tts.voice_manager import VoiceManager
 from src.backend.core.constants import Audio
+from src.backend.core.setting import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -19,47 +19,21 @@ class TextToSpeech:
     def __init__(self, voice_manager: VoiceManager | None = None):
         self.voice_manager = voice_manager or VoiceManager()
 
-    def speak(self, text: str, voice_name: str | None = None, play_local: bool = True) -> str | None:
-        """
-        Synthesizes text to speech and plays the audio.
-        
-        Args:
-            text: The input string to convert to speech.
-            voice_name: The voice model to use. Uses default if None.
-            play_local: If True, plays through speakers and deletes file. If False, returns file path.
+    def speak(self, text: str, voice_name: str | None = None, play_local: bool | None = None, output_path: Path | None = None) -> str | None:
+        if play_local is None:
+            play_local = not Settings.USE_BROWSER_AUDIO
             
-        Raises:
-            ValueError: If the text is empty or whitespace.
-            TextToSpeechError: If speech generation fails.
-            AudioPlaybackError: If audio playback fails.
-            
-        Returns:
-            String path to the audio file if play_local is False, else None.
-        """
-        wav_path = self.generate_audio(text, voice_name)
+        wav_path = self.generate_audio(text, voice_name, output_path)
         if not play_local:
             return str(wav_path)
             
         try:
             self.play_audio(wav_path)
         finally:
-            self._cleanup_audio(wav_path)
+            if output_path is None:
+                self._cleanup_audio(wav_path)
 
-    def generate_audio(self, text: str, voice_name: str | None = None) -> Path:
-        """
-        Calls Piper TTS to generate a WAV file.
-        
-        Args:
-            text: The input string.
-            voice_name: The voice model to use.
-            
-        Returns:
-            Path to the generated temporary WAV file.
-            
-        Raises:
-            ValueError: If the text is empty or whitespace.
-            TextToSpeechError: If generation fails.
-        """
+    def generate_audio(self, text: str, voice_name: str | None = None, output_path: Path | None = None) -> Path:
         if not text or not text.strip():
             raise ValueError("Text input cannot be empty.")
 
@@ -68,9 +42,13 @@ class TextToSpeech:
 
         piper_exe = self.voice_manager.get_piper_executable()
         model_path = self.voice_manager.get_voice_path(voice_name)
-        temp_file = tempfile.NamedTemporaryFile(suffix=Audio.FILE_SUFFIX, delete=False)
-        wav_path = Path(temp_file.name)
-        temp_file.close()
+        
+        if output_path is not None:
+            wav_path = output_path
+        else:
+            temp_file = tempfile.NamedTemporaryFile(suffix=Audio.FILE_SUFFIX, delete=False)
+            wav_path = Path(temp_file.name)
+            temp_file.close()
 
         try:
             process = subprocess.Popen(
@@ -95,19 +73,11 @@ class TextToSpeech:
             
         except Exception as error:
             logger.exception("Failed to execute Piper TTS.")
-            self._cleanup_audio(wav_path)
+            if output_path is None:
+                self._cleanup_audio(wav_path)
             raise TextToSpeechError("Audio generation failed.") from error
 
     def play_audio(self, audio_path: Path) -> None:
-        """
-        Plays a WAV file through system speakers.
-        
-        Args:
-            audio_path: Path to the WAV file.
-            
-        Raises:
-            AudioPlaybackError: If audio playback fails.
-        """
         logger.info(f"Playing audio from {audio_path}...")
         try:
             fs, data = wavfile.read(str(audio_path))
