@@ -16,15 +16,6 @@ class WebSearchSchema:
 
 
 def execute_web_search(query: str) -> str:
-    """
-    Executes a web search using the Tavily API.
-    
-    Args:
-        query: The search query string.
-        
-    Returns:
-        A string containing the search results or an error message.
-    """
     logger.info(f"Executing web search for query: '{query}'")
     
     if not Settings.TAVILY_API_KEY:
