@@ -117,4 +117,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Request permissions on load
     initAudio();
+
+    // PDF Upload Logic
+    const pdfUploadInput = document.getElementById('pdf-upload');
+    const uploadPdfBtn = document.getElementById('upload-pdf-btn');
+    const pdfStatus = document.getElementById('pdf-status');
+
+    uploadPdfBtn.addEventListener('click', async () => {
+        const file = pdfUploadInput.files[0];
+        if (!file) {
+            alert("Please select a PDF file first.");
+            return;
+        }
+
+        pdfStatus.textContent = "Uploading...";
+        pdfStatus.style.color = "#a78bfa";
+        uploadPdfBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch('/api/upload-pdf', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error("Upload failed");
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value, { stream: true });
+                // Get the last line of the chunk for the most recent status
+                const lines = chunk.trim().split('\n');
+                if (lines.length > 0 && lines[lines.length - 1]) {
+                     pdfStatus.textContent = lines[lines.length - 1];
+                }
+            }
+            pdfStatus.style.color = "#10b981"; // green success
+        } catch (error) {
+            console.error(error);
+            pdfStatus.textContent = "Error uploading PDF.";
+            pdfStatus.style.color = "#ef4444";
+        } finally {
+            uploadPdfBtn.disabled = false;
+        }
+    });
 });
