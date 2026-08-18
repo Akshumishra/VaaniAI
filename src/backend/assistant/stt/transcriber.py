@@ -82,6 +82,7 @@ class AudioTranscriber:
                 beam_size=STT.BEAM_SIZE,
                 language=self.language,
                 task=self.task,
+                vad_filter=True,
             )
             text = "".join(segment.text for segment in segments).strip()
 
@@ -107,6 +108,7 @@ class AudioTranscriber:
                         beam_size=STT.BEAM_SIZE,
                         language=self.language,
                         task=self.task,
+                        vad_filter=True,
                     )
                     text = "".join(segment.text for segment in segments).strip()
                     return text

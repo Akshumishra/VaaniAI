@@ -4,6 +4,7 @@ import platform
 import shutil
 import urllib.request
 import zipfile
+import tarfile
 from pathlib import Path
 from huggingface_hub import hf_hub_download
 
@@ -64,7 +65,6 @@ class VoiceManager:
                 with zipfile.ZipFile(archive_path, 'r') as zip_ref:
                     zip_ref.extractall(self.piper_exe_path.parent)
             else:
-                import tarfile
                 with tarfile.open(archive_path, 'r:gz') as tar_ref:
                     tar_ref.extractall(self.piper_exe_path.parent)
                     
