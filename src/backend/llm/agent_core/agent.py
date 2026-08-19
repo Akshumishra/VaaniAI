@@ -38,8 +38,10 @@ class Agent:
         return self.tools[name].execute()
 
     def _call_llm(self, chat_history: List[dict]):
-        tools_list = [tool.schema() for tool in self.tools.values()] if self.tools else None
-        
+        tools_list = (
+            [tool.schema() for tool in self.tools.values()] if self.tools else None
+        )
+
         kwargs = {
             "model": self.model,
             "temperature": self.temperature,
@@ -48,7 +50,7 @@ class Agent:
         if tools_list:
             kwargs["tools"] = tools_list
             kwargs["tool_choice"] = "auto"
-            
+
         return self.client.chat.completions.create(**kwargs)
 
     def _format_chat_history(self, chat_history: list[dict]) -> List[dict]:
@@ -73,7 +75,6 @@ class Agent:
             message = response.choices[0].message
 
             if message.tool_calls:
-                # Construct standard assistant message dictionary containing tool calls
                 assistant_msg = {
                     "role": "assistant",
                     "content": message.content,
@@ -84,15 +85,20 @@ class Agent:
                             "function": {
                                 "name": tc.function.name,
                                 "arguments": tc.function.arguments,
-                            }
-                        } for tc in message.tool_calls
-                    ]
+                            },
+                        }
+                        for tc in message.tool_calls
+                    ],
                 }
                 formatted_history.append(assistant_msg)
 
                 for tool_call in message.tool_calls:
                     tool_name = tool_call.function.name
-                    args = json.loads(tool_call.function.arguments) if tool_call.function.arguments else {}
+                    args = (
+                        json.loads(tool_call.function.arguments)
+                        if tool_call.function.arguments
+                        else {}
+                    )
 
                     result = self._execute_tool(tool_name, args)
                     self.on_tool_result(tool_name, args, result)

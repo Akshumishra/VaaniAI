@@ -7,6 +7,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from src.backend.services.assistant_service import VoiceAssistant
 from src.backend.core.setting import Settings
 
+
 def main():
     print("Starting VaaniAI application...")
     logging.basicConfig(
@@ -16,6 +17,7 @@ def main():
     )
     assistant = VoiceAssistant()
     assistant.run_continuous_loop()
+
 
 if __name__ == "__main__":
     main()

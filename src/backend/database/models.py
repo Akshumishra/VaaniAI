@@ -4,9 +4,10 @@ from pgvector.sqlalchemy import Vector
 
 Base = declarative_base()
 
+
 class DocumentChunk(Base):
-    __tablename__ = 'document_chunks'
-    
+    __tablename__ = "document_chunks"
+
     id = Column(Integer, primary_key=True)
     document_name = Column(Text, nullable=True)
     file_hash = Column(Text, nullable=False, index=True)
