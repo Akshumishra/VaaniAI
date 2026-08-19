@@ -15,19 +15,16 @@ else:
 class Settings:
     """Global configuration settings."""
     HF_TOKEN = os.getenv("HF_TOKEN")
-    OPEN_API_KEY = os.getenv("OPEN_API_KEY")
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-    WEATHER_API = os.getenv("WEATHER_API")
-    TAVILY_API = os.getenv("TAVILY_API")
-    WEATHER_URL = os.getenv("WEATHER_URL")
-    TAVILY_URL = os.getenv("TAVILY_URL")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_API_KEY")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+    TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+    WEATHERAPI_KEY = os.getenv("WEATHERAPI_KEY")
     
     @classmethod
     def validate(cls):
         if not cls.HF_TOKEN:
             logger.warning("HF_TOKEN is not set in the environment.")
-        if not cls.GEMINI_API_KEY:
-            logger.warning("GEMINI_API_KEY is not set in the environment.")
+        if not cls.OPENAI_API_KEY:
+            logger.warning("OPENAI_API_KEY is not set in the environment. LLM module may fail.")
 
 Settings.validate()
