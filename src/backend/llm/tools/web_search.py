@@ -3,11 +3,10 @@ from typing import Dict, Any
 from tavily import TavilyClient
 
 from src.backend.core.setting import Settings
-
-logger = logging.getLogger(__name__)
-
 from src.backend.llm.agent_core.tools import Tool
 from src.backend.llm.agent_core.arg_schema import ArgsSchema
+
+logger = logging.getLogger(__name__)
 
 
 class WebSearchSchema:

@@ -10,7 +10,7 @@ from huggingface_hub import hf_hub_download
 
 from src.backend.assistant.tts.exceptions import VoiceNotFoundError
 from src.backend.core.setting import Settings
-from src.backend.core.constants import TTS, Paths
+from src.backend.core.constants import TTS, Paths, ErrorMessages
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class VoiceManager:
             url = TTS.PIPER_MACOS_URL
         else:
             raise VoiceNotFoundError(
-                f"Unsupported OS for automatic Piper download: {sys_os}"
+                ErrorMessages.UNSUPPORTED_OS_FOR_PIPER.format(os=sys_os)
             )
 
         self.piper_exe_path.parent.mkdir(parents=True, exist_ok=True)
@@ -76,7 +76,7 @@ class VoiceManager:
 
         except Exception as error:
             logger.exception("Failed to download Piper binary.")
-            raise VoiceNotFoundError("Could not download Piper binary.") from error
+            raise VoiceNotFoundError(ErrorMessages.PIPER_DOWNLOAD_FAILED) from error
 
     def _download_voice_model(self, voice_name: str) -> None:
         """Downloads the ONNX model and config from Hugging Face using HF_TOKEN."""
@@ -97,7 +97,7 @@ class VoiceManager:
 
             if voice_name not in voices_data:
                 raise VoiceNotFoundError(
-                    f"Voice '{voice_name}' not found in the Piper voices registry."
+                    ErrorMessages.VOICE_NOT_IN_REGISTRY.format(voice_name=voice_name)
                 )
 
             voice_info = voices_data[voice_name]
@@ -125,7 +125,7 @@ class VoiceManager:
                 f"Failed to download voice model '{voice_name}' from Hugging Face."
             )
             raise VoiceNotFoundError(
-                f"Could not download voice '{voice_name}'."
+                ErrorMessages.VOICE_DOWNLOAD_FAILED.format(voice_name=voice_name)
             ) from error
 
     def get_piper_executable(self) -> Path:
@@ -143,7 +143,7 @@ class VoiceManager:
                 self.piper_exe_path = nested_path
             else:
                 raise VoiceNotFoundError(
-                    f"Piper executable still not found after download at {self.piper_exe_path}"
+                    ErrorMessages.PIPER_NOT_FOUND_AFTER_DOWNLOAD.format(path=self.piper_exe_path)
                 )
 
         return self.piper_exe_path
@@ -161,6 +161,6 @@ class VoiceManager:
             self._download_voice_model(target_voice)
 
         if not model_path.exists():
-            raise VoiceNotFoundError(f"Model path missing after download: {model_path}")
+            raise VoiceNotFoundError(ErrorMessages.VOICE_MODEL_MISSING_AFTER_DOWNLOAD.format(path=model_path))
 
         return model_path

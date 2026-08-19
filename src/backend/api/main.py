@@ -10,30 +10,35 @@ from fastapi.responses import StreamingResponse
 
 from src.backend.assistant.stt.transcriber import AudioTranscriber
 from src.backend.assistant.tts.speaker import TextToSpeech
-from src.backend.llm.vaani_agent.agent import VaaniAI
+from src.backend.core.constants import Paths, ErrorMessages
+from src.backend.core.setting import Settings
 from src.backend.llm.agent_core.conversation import ConversationManager
 from src.backend.llm.tools.web_search import web_search_tool
-from src.backend.llm.tools.weather import weather_tool
 from src.backend.llm.tools.pdf_search import pdf_search_tool
+from src.backend.llm.tools.weather import weather_tool
+from src.backend.llm.vaani_agent.agent import VaaniAI
 from src.backend.llm.rag.pdf_store import pdf_store
-from src.backend.core.constants import Paths
-from src.backend.core.setting import Settings
 
 logging.basicConfig(
     level=getattr(logging, Settings.LOG_LEVEL.upper(), logging.INFO),
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     force=True,
 )
+
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="VaaniAI API")
 
 transcriber = AudioTranscriber()
+
 agent = VaaniAI()
+
 agent.add_tool(web_search_tool)
 agent.add_tool(weather_tool)
 agent.add_tool(pdf_search_tool)
+
 conversation = ConversationManager()
+
 tts = TextToSpeech()
 
 TEMP_DIR = Path(Paths.GENERATED_DIR) / "api_temp"
@@ -54,7 +59,7 @@ async def chat_endpoint(audio: UploadFile = File(...)):
 
         if not text:
             logger.info("No speech detected. Informing LLM.")
-            text = "[System: The user submitted an audio clip, but no speech was detected. Please politely ask them to repeat themselves or check their microphone.]"
+            text = ErrorMessages.NO_SPEECH_DETECTED
 
         logger.info(f"User said: {text}")
         conversation.add_user_message(text)
@@ -83,7 +88,7 @@ async def get_audio(filename: str):
     file_path = TEMP_DIR / filename
     if file_path.exists():
         return FileResponse(file_path, media_type="audio/wav")
-    return {"error": "Audio file not found."}
+    return {"error": ErrorMessages.AUDIO_FILE_NOT_FOUND_ENDPOINT}
 
 
 @app.post("/api/upload-pdf")

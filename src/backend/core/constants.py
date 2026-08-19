@@ -45,3 +45,43 @@ class LLM:
     DEFAULT_MODEL = "gpt-4.1-mini"
     MAX_TOKENS = 200
     TEMPERATURE = None
+
+class ErrorMessages:
+    # --- Generic ---
+    GENERIC = "Something went wrong. Please try again."
+    UNEXPECTED = "Unexpected error: {e}"
+
+    # --- API / OpenAI ---
+    MISSING_OPENAI_API_KEY = "OPENAI_API_KEY is required but was not provided."
+    NO_LLM_CHOICES = "No choices returned from OpenAI API."
+    API_CONNECTION_FAILED = "Failed to connect to OpenAI API: {e}"
+    API_GENERATION_FAILED = "OpenAI API failed to generate a response: {e}"
+
+    # --- Tool execution ---
+    TOOL_EXECUTION_FAILED = "Error executing tool: {e}"
+    TOOL_NOT_FOUND = "Tool '{func_name}' not found."
+
+    # --- STT ---
+    AUDIO_FILE_NOT_FOUND = "Audio file not found: {path}"
+    TRANSCRIPTION_FAILED = "Failed to transcribe audio via OpenAI."
+    EMPTY_TEXT_INPUT = "Text input cannot be empty."
+
+    # --- TTS / Voice Manager ---
+    PIPER_DOWNLOAD_FAILED = "Could not download Piper binary."
+    PIPER_NOT_FOUND_AFTER_DOWNLOAD = "Piper executable still not found after download at {path}"
+    UNSUPPORTED_OS_FOR_PIPER = "Unsupported OS for automatic Piper download: {os}"
+    VOICE_NOT_IN_REGISTRY = "Voice '{voice_name}' not found in the Piper voices registry."
+    VOICE_DOWNLOAD_FAILED = "Could not download voice '{voice_name}'."
+    VOICE_MODEL_MISSING_AFTER_DOWNLOAD = "Model path missing after download: {path}"
+    PIPER_EXECUTION_FAILED = "Piper TTS failed with code {code}"
+    AUDIO_GENERATION_FAILED = "Audio generation failed."
+    AUDIO_PLAYBACK_FAILED = "Audio playback failed."
+
+    # --- API endpoints ---
+    AUDIO_FILE_NOT_FOUND_ENDPOINT = "Audio file not found."
+
+    # --- Empty speech ---
+    NO_SPEECH_DETECTED = (
+        "[System: The user submitted an audio clip, but no speech was detected. "
+        "Please politely ask them to repeat themselves or check their microphone.]"
+    )

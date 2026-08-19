@@ -1,20 +1,17 @@
 import logging
 import subprocess
 import tempfile
-import sounddevice as sd
-from scipy.io import wavfile
 from pathlib import Path
-
-from src.backend.assistant.tts.exceptions import TextToSpeechError, AudioPlaybackError
+from src.backend.assistant.tts.exceptions import TextToSpeechError
 from src.backend.assistant.tts.voice_manager import VoiceManager
-from src.backend.core.constants import Audio
+from src.backend.core.constants import Audio, ErrorMessages
 from src.backend.core.setting import Settings
 
 logger = logging.getLogger(__name__)
 
 
 class TextToSpeech:
-    """Generates speech using Piper TTS and plays it through system speakers."""
+    """Generates speech using Piper TTS."""
 
     def __init__(self, voice_manager: VoiceManager | None = None):
         self.voice_manager = voice_manager or VoiceManager()
@@ -23,27 +20,16 @@ class TextToSpeech:
         self,
         text: str,
         voice_name: str | None = None,
-        play_local: bool | None = None,
         output_path: Path | None = None,
-    ) -> str | None:
-        if play_local is None:
-            play_local = not Settings.USE_BROWSER_AUDIO
-
+    ) -> str:
         wav_path = self.generate_audio(text, voice_name, output_path)
-        if not play_local:
-            return str(wav_path)
-
-        try:
-            self.play_audio(wav_path)
-        finally:
-            if output_path is None:
-                self._cleanup_audio(wav_path)
+        return str(wav_path)
 
     def generate_audio(
         self, text: str, voice_name: str | None = None, output_path: Path | None = None
     ) -> Path:
         if not text or not text.strip():
-            raise ValueError("Text input cannot be empty.")
+            raise ValueError(ErrorMessages.EMPTY_TEXT_INPUT)
 
         clean_text = text.strip()
         logger.info(f"Generating speech for text: '{clean_text}'")
@@ -80,7 +66,7 @@ class TextToSpeech:
             if process.returncode != 0:
                 logger.error(f"Piper execution failed: {stderr}")
                 raise TextToSpeechError(
-                    f"Piper TTS failed with code {process.returncode}"
+                    ErrorMessages.PIPER_EXECUTION_FAILED.format(code=process.returncode)
                 )
 
             return wav_path
@@ -89,18 +75,9 @@ class TextToSpeech:
             logger.exception("Failed to execute Piper TTS.")
             if output_path is None:
                 self._cleanup_audio(wav_path)
-            raise TextToSpeechError("Audio generation failed.") from error
+            raise TextToSpeechError(ErrorMessages.AUDIO_GENERATION_FAILED) from error
 
-    def play_audio(self, audio_path: Path) -> None:
-        logger.info(f"Playing audio from {audio_path}...")
-        try:
-            fs, data = wavfile.read(str(audio_path))
-            sd.play(data, fs)
-            sd.wait()
-            logger.info("Audio playback completed.")
-        except Exception as error:
-            logger.exception("Failed to play audio.")
-            raise AudioPlaybackError("Audio playback failed.") from error
+
 
     def _cleanup_audio(self, audio_path: Path) -> None:
         """Removes the temporary audio file."""

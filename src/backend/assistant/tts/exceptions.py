@@ -8,9 +8,3 @@ class VoiceNotFoundError(TextToSpeechError):
     """Raised when the specified voice model is not found."""
 
     pass
-
-
-class AudioPlaybackError(TextToSpeechError):
-    """Raised when audio playback fails."""
-
-    pass

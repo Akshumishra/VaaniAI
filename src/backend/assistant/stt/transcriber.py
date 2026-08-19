@@ -6,7 +6,7 @@ from src.backend.assistant.stt.exceptions import (
     TranscriptionError,
     AudioValidationError,
 )
-from src.backend.core.constants import STT
+from src.backend.core.constants import STT, ErrorMessages
 from src.backend.core.setting import Settings
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class AudioTranscriber:
     def transcribe(self, audio_path: Path) -> str:
         """Transcribes the given audio file using the OpenAI API and returns the text."""
         if not audio_path.exists():
-            raise AudioValidationError(f"Audio file not found: {audio_path}")
+            raise AudioValidationError(ErrorMessages.AUDIO_FILE_NOT_FOUND.format(path=audio_path))
 
         logger.info(f"Transcribing audio file via OpenAI API: {audio_path}")
         try:
@@ -45,6 +45,4 @@ class AudioTranscriber:
 
         except Exception as error:
             logger.exception("Error during OpenAI transcription.")
-            raise TranscriptionError(
-                "Failed to transcribe audio via OpenAI."
-            ) from error
+            raise TranscriptionError(ErrorMessages.TRANSCRIPTION_FAILED) from error
