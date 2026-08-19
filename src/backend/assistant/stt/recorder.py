@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class AudioRecorder:
-    def __init__(self, sample_rate: int = Audio.sample_rate, channels: int = Audio.channels):
+    def __init__(self, sample_rate: int = Audio.SAMPLE_RATE, channels: int = Audio.CHANNELS):
         self.sample_rate = sample_rate
         self.channels = channels
 
@@ -28,7 +28,7 @@ class AudioRecorder:
                 int(duration_seconds * self.sample_rate),
                 samplerate=self.sample_rate,
                 channels=self.channels,
-                dtype=np.dtype(Audio.dtype)
+                dtype=np.dtype(Audio.DTYPE)
             )
             sd.wait()
             logger.info("Recording completed.")
@@ -42,7 +42,7 @@ class AudioRecorder:
         """Saves numpy audio data to a WAV file."""
         try:
             if output_path is None:
-                temp_file = tempfile.NamedTemporaryFile(suffix=Audio.file_suffix, delete=False)
+                temp_file = tempfile.NamedTemporaryFile(suffix=Audio.FILE_SUFFIX, delete=False)
                 file_path = Path(temp_file.name)
             else:
                 file_path = output_path
