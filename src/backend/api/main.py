@@ -6,19 +6,24 @@ from pathlib import Path
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import StreamingResponse
 
 from src.backend.assistant.stt.transcriber import AudioTranscriber
+from src.backend.assistant.tts.speaker import TextToSpeech
 from src.backend.llm.vaani_agent.agent import VaaniAI
 from src.backend.llm.agent_core.conversation import ConversationManager
-from src.backend.assistant.tts.speaker import TextToSpeech
 from src.backend.llm.tools.web_search import web_search_tool
 from src.backend.llm.tools.weather import weather_tool
 from src.backend.llm.tools.pdf_search import pdf_search_tool
 from src.backend.llm.rag.pdf_store import pdf_store
 from src.backend.core.constants import Paths
-from fastapi.responses import StreamingResponse
+from src.backend.core.setting import Settings
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=getattr(logging, Settings.LOG_LEVEL.upper(), logging.INFO),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    force=True,
+)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="VaaniAI API")
@@ -31,7 +36,6 @@ agent.add_tool(pdf_search_tool)
 conversation = ConversationManager()
 tts = TextToSpeech()
 
-# Ensure temp audio directory exists
 TEMP_DIR = Path(Paths.GENERATED_DIR) / "api_temp"
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -41,19 +45,16 @@ async def chat_endpoint(audio: UploadFile = File(...)):
     """Receives audio from browser, processes it, and returns TTS audio."""
     temp_input_path = TEMP_DIR / "user_input.wav"
 
-    # Save the uploaded audio
     with open(temp_input_path, "wb") as buffer:
         shutil.copyfileobj(audio.file, buffer)
 
     try:
-        # 1. Transcribe
         logger.info("Transcribing uploaded audio...")
         text = transcriber.transcribe(temp_input_path)
 
         if not text:
             return {"error": "No speech detected in the audio file."}
 
-        # 2. LLM Reasoning
         logger.info(f"User said: {text}")
         conversation.add_user_message(text)
 
