@@ -1,28 +1,15 @@
-# Python-generated files
 __pycache__/
 *.py[oc]
 build/
 dist/
 wheels/
 *.egg-info
-
-# Virtual environments
 .venv
-
-# Enviroment Variables
 .env
-
 .python-version
-
-# Generated files
 generated/
-
-# Agent rule book
 AGENT.md
-
-# logs
 logs/
-
 bin/
-
 models/
+site/
