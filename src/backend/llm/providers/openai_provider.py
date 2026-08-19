@@ -13,13 +13,6 @@ class OpenAIProvider(LLMProvider):
     """LLM Provider implementation using the OpenAI API."""
 
     def __init__(self, model: str = LLM.DEFAULT_MODEL):
-        """
-        Initializes the OpenAI provider.
-
-        Args:
-            api_key: The OpenAI API key. If None, it will be fetched from Settings.
-            model: The name of the model to use (e.g., 'gpt-4o-mini').
-        """
         self.api_key = Settings.OPENAI_API_KEY
         self.model = model
         
@@ -31,21 +24,6 @@ class OpenAIProvider(LLMProvider):
         logger.info(f"OpenAIProvider initialized with model: {self.model}")
 
     def generate_response(self, messages: List[Dict[str, Any]], **kwargs) -> str:
-        """
-        Generates a response from the OpenAI LLM based on a list of messages.
-
-        Args:
-            messages: A list of message dictionaries. 
-                      Format: [{'role': 'system'/'user'/'assistant', 'content': '...'}, ...]
-            **kwargs: Additional parameters (e.g., temperature, max_tokens).
-
-        Returns:
-            The text response from the LLM.
-            
-        Raises:
-            LLMConnectionError: If connection to the provider fails.
-            LLMGenerationError: If the provider fails to generate a valid response.
-        """
         max_tokens = kwargs.get('max_tokens', LLM.MAX_TOKENS)
         temperature = kwargs.get('temperature')
 

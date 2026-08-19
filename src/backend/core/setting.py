@@ -19,6 +19,8 @@ class Settings:
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
     WEATHERAPI_KEY = os.getenv("WEATHERAPI_KEY")
+    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
+    USE_BROWSER_AUDIO = os.getenv("USE_BROWSER_AUDIO", "True").lower() in ("true", "1", "yes")
     
     @classmethod
     def validate(cls):
