@@ -9,6 +9,7 @@ class DocumentChunk(Base):
     
     id = Column(Integer, primary_key=True)
     document_name = Column(Text, nullable=True)
+    file_hash = Column(Text, nullable=False, index=True)
     page_number = Column(Integer, nullable=True)
     chunk_text = Column(Text, nullable=False)
     embedding = Column(Vector(768), nullable=False)

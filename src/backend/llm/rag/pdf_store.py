@@ -12,11 +12,19 @@ class PDFStore:
         self.model_name = model_name
         logger.info(f"Loading SentenceTransformer model: {self.model_name}...")
         self.model = SentenceTransformer(self.model_name)
+        self.active_file_hash = None
         logger.info("SentenceTransformer model loaded successfully.")
 
-    def add_pdf_generator(self, file_path: str) -> Generator[str, None, None]:
+    def add_pdf_generator(self, file_path: str, file_hash: str, original_filename: str = None) -> Generator[str, None, None]:
+        self.active_file_hash = file_hash
+        filename = original_filename or os.path.basename(file_path)
+        
+        if db_manager.check_document_exists(file_hash):
+            yield f"Document already processed. Set as active: {filename}\n"
+            yield "Ready\n"
+            return
+
         yield "Extracting text from PDF...\n"
-        filename = os.path.basename(file_path)
         
         all_chunks = []
         all_metadata = []
@@ -61,7 +69,7 @@ class PDFStore:
             chunk_embeddings = self.model.encode(all_chunks, convert_to_numpy=True)
             
             # Save to PostgreSQL via DB layer
-            db_manager.save_chunks(all_metadata, all_chunks, chunk_embeddings)
+            db_manager.save_chunks(all_metadata, all_chunks, chunk_embeddings, file_hash)
             
             yield "Ready\n"
         except Exception as e:
@@ -72,13 +80,15 @@ class PDFStore:
         """
         Searches the PostgreSQL vector store for chunks most similar to the query.
         """
-        
+        if not getattr(self, 'active_file_hash', None):
+            return ["No active document selected."]
+            
         try:
             # Embed the query
             query_embedding = self.model.encode([query], convert_to_numpy=True)[0]
             
             # Search via DB layer
-            results = db_manager.search_chunks(query_embedding, top_k)
+            results = db_manager.search_chunks(query, query_embedding, top_k, self.active_file_hash)
             
             if not results:
                 return ["No highly relevant information found in the document."]

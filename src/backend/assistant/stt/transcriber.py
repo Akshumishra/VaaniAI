@@ -1,122 +1,44 @@
 import logging
-import os
-import site
-import platform
 from pathlib import Path
-from faster_whisper import WhisperModel
+from openai import OpenAI
 
 from src.backend.assistant.stt.exceptions import TranscriptionError, AudioValidationError
 from src.backend.core.constants import STT
 from src.backend.core.setting import Settings
 
-
 logger = logging.getLogger(__name__)
-
-if platform.system() == "Windows":
-    try:
-        # Look for the nvidia folder directly in all Python site-packages directories
-        for site_pkg in site.getsitepackages() + [site.getusersitepackages()]:
-            nvidia_base = Path(site_pkg) / "nvidia"
-            if nvidia_base.exists():
-                for dll_dir in nvidia_base.rglob("bin"):
-                    if hasattr(os, "add_dll_directory"):
-                        os.add_dll_directory(str(dll_dir))
-    except Exception as e:
-        pass # Silently fail if something goes wrong, we'll just fall back to CPU anyway
 
 class AudioTranscriber:
     def __init__(
         self,
         model_name: str = STT.MODEL_NAME,
-        device: str = STT.DEVICE,
         language: str = STT.LANGUAGE,
-        task: str = STT.TASK,
     ):
         self.model_name = model_name
-        self.device = device
         self.language = language
-        self.task = task
-        self.model = None
-        self._hf_token = Settings.HF_TOKEN
-
-    def _load_model(self) -> None:
-        """Load Whisper model on GPU first, fall back to CPU if unavailable."""
-        if self.model is not None:
-            return
-
-        if self.device == "cuda":
-            try:
-                logger.info("Attempting GPU initialization.")
-                self.model = WhisperModel(
-                    self.model_name,
-                    device="cuda",
-                    compute_type=STT.COMPUTE_TYPE_GPU,
-                    **({"local_files_only": False} if self._hf_token else {}),
-                )
-                logger.info("Whisper running on GPU.")
-                return
-            except Exception as gpu_error:
-                logger.warning(
-                    f"GPU initialization failed ({gpu_error}). Falling back to CPU."
-                )
-
-        self.model = WhisperModel(
-            self.model_name,
-            device="cpu",
-            compute_type=STT.COMPUTE_TYPE_CPU,
-        )
-        logger.info("Whisper running on CPU.")
+        self.client = OpenAI(api_key=Settings.OPENAI_API_KEY)
 
     def transcribe(self, audio_path: Path) -> str:
-        """Transcribes the given audio file and returns the text."""
+        """Transcribes the given audio file using the OpenAI API and returns the text."""
         if not audio_path.exists():
             raise AudioValidationError(f"Audio file not found: {audio_path}")
 
-        if self.model is None:
-            self._load_model()
-
-        logger.info(f"Transcribing audio file: {audio_path}")
+        logger.info(f"Transcribing audio file via OpenAI API: {audio_path}")
         try:
-            segments, _ = self.model.transcribe(
-                str(audio_path),
-                beam_size=STT.BEAM_SIZE,
-                language=self.language,
-                task=self.task,
-                vad_filter=True,
-            )
-            text = "".join(segment.text for segment in segments).strip()
-
+            with open(audio_path, "rb") as audio_file:
+                transcription = self.client.audio.transcriptions.create(
+                    model=self.model_name,
+                    file=audio_file,
+                    language=self.language,
+                )
+            
+            text = transcription.text.strip()
             if not text:
                 logger.warning("Transcription resulted in empty text.")
                 return ""
 
             return text
 
-        except RuntimeError as error:
-            if "cuda" in str(error).lower() or "cublas" in str(error).lower() or "cudnn" in str(error).lower():
-                logger.warning(
-                    f"CUDA runtime error during transcription ({error}). Retrying on CPU."
-                )
-                self.model = WhisperModel(
-                    self.model_name,
-                    device="cpu",
-                    compute_type=STT.COMPUTE_TYPE_CPU,
-                )
-                try:
-                    segments, _ = self.model.transcribe(
-                        str(audio_path),
-                        beam_size=STT.BEAM_SIZE,
-                        language=self.language,
-                        task=self.task,
-                        vad_filter=True,
-                    )
-                    text = "".join(segment.text for segment in segments).strip()
-                    return text
-                except Exception as cpu_error:
-                    logger.exception("Transcription failed even on CPU.")
-                    raise TranscriptionError("Failed to transcribe audio on CPU.") from cpu_error
-            raise TranscriptionError("Failed to transcribe audio.") from error
-
         except Exception as error:
-            logger.exception("Error during transcription.")
-            raise TranscriptionError("Failed to transcribe audio.") from error
+            logger.exception("Error during OpenAI transcription.")
+            raise TranscriptionError("Failed to transcribe audio via OpenAI.") from error

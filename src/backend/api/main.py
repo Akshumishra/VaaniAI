@@ -26,6 +26,7 @@ app = FastAPI(title="VaaniAI API")
 transcriber = AudioTranscriber()
 agent = VaaniAI()
 agent.add_tool(web_search_tool)
+agent.add_tool(weather_tool)
 agent.add_tool(pdf_search_tool)
 conversation = ConversationManager()
 tts = TextToSpeech()
@@ -83,16 +84,21 @@ async def get_audio(filename: str):
 @app.post("/api/upload-pdf")
 async def upload_pdf(file: UploadFile = File(...)):
     """Receives a PDF and streams its processing status back to the frontend."""
-    temp_pdf_path = TEMP_DIR / "uploaded.pdf"
+    import hashlib
+    sha256_hash = hashlib.sha256()
+    content = await file.read()
+    sha256_hash.update(content)
+    file_hash = sha256_hash.hexdigest()
+    
+    temp_pdf_path = TEMP_DIR / f"{file_hash}.pdf"
     
     with open(temp_pdf_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        buffer.write(content)
         
     return StreamingResponse(
-        pdf_store.add_pdf_generator(str(temp_pdf_path)),
+        pdf_store.add_pdf_generator(str(temp_pdf_path), file_hash, file.filename),
         media_type="text/plain"
     )
 
-# Mount the static frontend files
 frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"
 app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="static")
