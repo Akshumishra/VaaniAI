@@ -19,21 +19,29 @@ class TextToSpeech:
     def __init__(self, voice_manager: VoiceManager | None = None):
         self.voice_manager = voice_manager or VoiceManager()
 
-    def speak(self, text: str, voice_name: str | None = None, play_local: bool | None = None, output_path: Path | None = None) -> str | None:
+    def speak(
+        self,
+        text: str,
+        voice_name: str | None = None,
+        play_local: bool | None = None,
+        output_path: Path | None = None,
+    ) -> str | None:
         if play_local is None:
             play_local = not Settings.USE_BROWSER_AUDIO
-            
+
         wav_path = self.generate_audio(text, voice_name, output_path)
         if not play_local:
             return str(wav_path)
-            
+
         try:
             self.play_audio(wav_path)
         finally:
             if output_path is None:
                 self._cleanup_audio(wav_path)
 
-    def generate_audio(self, text: str, voice_name: str | None = None, output_path: Path | None = None) -> Path:
+    def generate_audio(
+        self, text: str, voice_name: str | None = None, output_path: Path | None = None
+    ) -> Path:
         if not text or not text.strip():
             raise ValueError("Text input cannot be empty.")
 
@@ -42,35 +50,41 @@ class TextToSpeech:
 
         piper_exe = self.voice_manager.get_piper_executable()
         model_path = self.voice_manager.get_voice_path(voice_name)
-        
+
         if output_path is not None:
             wav_path = output_path
         else:
-            temp_file = tempfile.NamedTemporaryFile(suffix=Audio.FILE_SUFFIX, delete=False)
+            temp_file = tempfile.NamedTemporaryFile(
+                suffix=Audio.FILE_SUFFIX, delete=False
+            )
             wav_path = Path(temp_file.name)
             temp_file.close()
 
         try:
             process = subprocess.Popen(
                 [
-                    str(piper_exe), 
-                    "--model", str(model_path), 
-                    "--output_file", str(wav_path)
+                    str(piper_exe),
+                    "--model",
+                    str(model_path),
+                    "--output_file",
+                    str(wav_path),
                 ],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                encoding="utf-8"
+                encoding="utf-8",
             )
             _, stderr = process.communicate(input=clean_text)
-            
+
             if process.returncode != 0:
                 logger.error(f"Piper execution failed: {stderr}")
-                raise TextToSpeechError(f"Piper TTS failed with code {process.returncode}")
-                
+                raise TextToSpeechError(
+                    f"Piper TTS failed with code {process.returncode}"
+                )
+
             return wav_path
-            
+
         except Exception as error:
             logger.exception("Failed to execute Piper TTS.")
             if output_path is None:
@@ -95,4 +109,6 @@ class TextToSpeech:
                 audio_path.unlink()
                 logger.debug(f"Cleaned up temp file: {audio_path}")
             except OSError as cleanup_error:
-                logger.warning(f"Could not remove temp file {audio_path}: {cleanup_error}")
+                logger.warning(
+                    f"Could not remove temp file {audio_path}: {cleanup_error}"
+                )

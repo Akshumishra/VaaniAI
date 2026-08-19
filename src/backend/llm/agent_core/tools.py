@@ -25,7 +25,7 @@ class Tool:
                         "type": "object",
                         "properties": {},
                     },
-                }
+                },
             }
 
         properties = {}
@@ -57,7 +57,7 @@ class Tool:
                     "properties": properties,
                     "required": required,
                 },
-            }
+            },
         }
 
     @staticmethod
@@ -68,4 +68,3 @@ class Tool:
             str: "string",
             bool: "boolean",
         }.get(py_type, "string")
-        

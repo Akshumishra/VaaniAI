@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 class Paths:
     BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
     SRC_DIR = BASE_DIR / "src"
@@ -10,21 +11,25 @@ class Paths:
     ENV_PATH = BASE_DIR / ".env"
     AUDIO_FILENAME = "audio.wav"
 
+
 class Audio:
     SAMPLE_RATE = 16000
     CHANNELS = 1
     DTYPE = "int16"
     FILE_SUFFIX = ".wav"
 
+
 class STT:
     MODEL_NAME = "whisper-1"
     LANGUAGE = "en"
+
 
 class Recording:
     MAX_DURATION_SECONDS = 30
     SILENCE_THRESHOLD = 500  # Amplitude threshold for int16
     SILENCE_DURATION_SECONDS = 1.5  # Stop recording after 1.5s of silence
     CHUNK_SIZE = 1024
+
 
 class TTS:
     PIPER_DEFAULT_VOICE = "en_US-lessac-medium"
@@ -34,6 +39,7 @@ class TTS:
     PIPER_WINDOWS_URL = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_windows_amd64.zip"
     PIPER_LINUX_URL = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz"
     PIPER_MACOS_URL = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_macos_aarch64.tar.gz"
+
 
 class LLM:
     DEFAULT_MODEL = "gpt-4.1-mini"

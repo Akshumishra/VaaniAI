@@ -12,21 +12,32 @@ if Paths.ENV_PATH.exists():
 else:
     logger.warning(f"No .env file found at {Paths.ENV_PATH}.")
 
+
 class Settings:
     """Global configuration settings."""
+
     HF_TOKEN = os.getenv("HF_TOKEN")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_API_KEY")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
     WEATHERAPI_KEY = os.getenv("WEATHERAPI_KEY")
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
-    USE_BROWSER_AUDIO = os.getenv("USE_BROWSER_AUDIO", "True").lower() in ("true", "1", "yes")
-    
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
+    )
+    USE_BROWSER_AUDIO = os.getenv("USE_BROWSER_AUDIO", "True").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+
     @classmethod
     def validate(cls):
         if not cls.HF_TOKEN:
             logger.warning("HF_TOKEN is not set in the environment.")
         if not cls.OPENAI_API_KEY:
-            logger.warning("OPENAI_API_KEY is not set in the environment. LLM module may fail.")
+            logger.warning(
+                "OPENAI_API_KEY is not set in the environment. LLM module may fail."
+            )
+
 
 Settings.validate()
