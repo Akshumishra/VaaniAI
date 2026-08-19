@@ -17,13 +17,8 @@ class Audio:
     FILE_SUFFIX = ".wav"
 
 class STT:
-    MODEL_NAME = "medium"
+    MODEL_NAME = "whisper-1"
     LANGUAGE = "en"
-    TASK = "transcribe"
-    DEVICE = "cuda"
-    COMPUTE_TYPE_GPU = "float16"
-    COMPUTE_TYPE_CPU = "int8"
-    BEAM_SIZE = 5
 
 class Recording:
     MAX_DURATION_SECONDS = 30

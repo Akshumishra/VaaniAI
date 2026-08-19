@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Play the audio
             if (data.audio_url) {
-                audioPlayer.src = data.audio_url;
+                audioPlayer.src = data.audio_url + "?t=" + new Date().getTime();
                 audioPlayer.play();
                 statusText.textContent = "Speaking... ";
                 
