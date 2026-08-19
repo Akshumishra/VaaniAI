@@ -53,7 +53,8 @@ async def chat_endpoint(audio: UploadFile = File(...)):
         text = transcriber.transcribe(temp_input_path)
 
         if not text:
-            return {"error": "No speech detected in the audio file."}
+            logger.info("No speech detected. Informing LLM.")
+            text = "[System: The user submitted an audio clip, but no speech was detected. Please politely ask them to repeat themselves or check their microphone.]"
 
         logger.info(f"User said: {text}")
         conversation.add_user_message(text)

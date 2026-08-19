@@ -6,13 +6,13 @@ This page describes how each component of VaaniAI works internally.
 
 Audio is captured in the browser using the native `MediaRecorder` API. When the user clicks the microphone button, recording begins. Clicking it again stops the recording, and the audio blob (typically `.webm` or `.ogg`, depending on the browser) is immediately sent as a file upload to the `/api/chat` endpoint.
 
-On the server, the uploaded audio is saved to a temporary file (`generated/api_temp/user_input.wav`) and passed to the `AudioTranscriber` class. Transcription is performed via the OpenAI Audio Transcriptions API using the `whisper-1` model. The language is fixed to English (`en`). If transcription returns empty text, the request returns an error and the agent loop is not invoked.
+On the server, the uploaded audio is saved to a temporary file (`generated/api_temp/user_input.wav`) and passed to the `AudioTranscriber` class. Transcription is performed via the OpenAI Audio Transcriptions API using the `whisper-1` model. The language is fixed to English (`en`). If transcription returns empty text, a system message is injected informing the LLM that no speech was detected, allowing the agent to gracefully ask the user to repeat themselves.
 
 Relevant file: `src/backend/assistant/stt/transcriber.py`
 
 ## LLM Agent
 
-VaaniAI uses a custom `Agent` base class (`src/backend/llm/agent_core/agent.py`) that wraps the OpenAI Chat Completions API with a tool-calling loop. The loop runs up to `max_iteration` times (default: 10). On each iteration:
+VaaniAI uses a custom `Agent` base class (`src/backend/llm/agent_core/agent.py`) that wraps the OpenAI Chat Completions API with a tool-calling loop. The loop runs up to `max_iteration` times (default: 3). On each iteration:
 
 1. The full conversation history is sent to the model.
 2. If the model returns `tool_calls`, each tool is executed sequentially, and the result is appended back to the conversation history as a `role: tool` message.

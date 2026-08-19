@@ -26,8 +26,8 @@ class STT:
 
 class Recording:
     MAX_DURATION_SECONDS = 30
-    SILENCE_THRESHOLD = 500  # Amplitude threshold for int16
-    SILENCE_DURATION_SECONDS = 1.5  # Stop recording after 1.5s of silence
+    SILENCE_THRESHOLD = 500
+    SILENCE_DURATION_SECONDS = 1.5
     CHUNK_SIZE = 1024
 
 
