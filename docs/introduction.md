@@ -24,7 +24,7 @@ The `VaaniAI` class (`src/backend/llm/vaani_agent/agent.py`) extends this base a
 - **Temperature**: `0.5`
 - **System Prompt**: Instructs the agent on its role, available tools, and output format. The prompt is defined in `src/backend/llm/vaani_agent/prompt.py`.
 
-Conversation history across turns is managed by `ConversationManager` (`src/backend/llm/agent_core/conversation.py`), which keeps the last 10 messages in memory (excluding the system prompt) to avoid exceeding token limits.
+Conversation history across turns is managed by `ConversationManager` (`src/backend/llm/agent_core/conversation.py`), which keeps the last 5 messages in memory (excluding the system prompt) to avoid exceeding token limits.
 
 ## Tools
 

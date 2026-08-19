@@ -56,13 +56,13 @@ VaaniAI/
 │   │   ├── assistant/
 │   │   │   ├── stt/
 │   │   │   │   ├── transcriber.py   # OpenAI Whisper transcription
-│   │   │   │   └── exceptions.py
+│   │   │   │   └── exceptions.py    # TranscriptionError, AudioValidationError
 │   │   │   └── tts/
-│   │   │       ├── speaker.py       # Piper TTS subprocess wrapper
-│   │   │       ├── voice_manager.py # Piper binary and model management
-│   │   │       └── exceptions.py
+│   │   │       ├── speaker.py       # Piper TTS subprocess wrapper (browser-only output)
+│   │   │       ├── voice_manager.py # Piper binary and voice model management
+│   │   │       └── exceptions.py    # TextToSpeechError, VoiceNotFoundError
 │   │   ├── core/
-│   │   │   ├── constants.py         # Path constants, audio/STT/TTS/LLM config values
+│   │   │   ├── constants.py         # All app constants + ErrorMessages (single source of truth)
 │   │   │   ├── setting.py           # Environment variable loader (Settings class)
 │   │   │   └── logger.py
 │   │   ├── database/
@@ -74,8 +74,7 @@ VaaniAI/
 │   │       │   ├── conversation.py  # ConversationManager (history + trimming)
 │   │       │   ├── tools.py         # Tool wrapper class
 │   │       │   ├── arg_schema.py    # Tool argument schema builder
-│   │       │   ├── prompts.py       # Default system prompt
-│   │       │   └── constants.py
+│   │       │   └── constants.py     # Agent defaults (model, temperature, iterations)
 │   │       ├── vaani_agent/
 │   │       │   ├── agent.py         # VaaniAI subclass (pre-configured agent)
 │   │       │   ├── prompt.py        # VaaniAI system prompt
@@ -105,7 +104,7 @@ The FastAPI application is defined in `src/backend/api/main.py`. It exposes thre
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST` | `/api/chat` | Receives a `.wav` audio upload, transcribes it, runs the agent, returns text and audio URL |
-| `GET` | `/api/audio/{filename}` | Serves the generated TTS `.wav` file |
+| `GET` | `/api/audio/{filename}` | Serves the generated TTS `.wav` file to the browser |
 | `POST` | `/api/upload-pdf` | Receives a PDF, computes its hash, ingests it if new, streams status text back |
 
 The frontend HTML/JS/CSS is served under `/` via FastAPI's `StaticFiles` mount.
@@ -130,7 +129,7 @@ sequenceDiagram
     STT-->>API: Transcribed text
 
     API->>LLM: invoke(conversation_history)
-    loop Agent loop (max 10 iterations)
+    loop Agent loop (max 3 iterations)
         LLM->>LLM: Call OpenAI gpt-4.1-mini
         alt Tool call requested
             LLM->>Tool: execute tool (web_search / weather / pdf_search)
@@ -147,7 +146,7 @@ sequenceDiagram
     API-->>Browser: { user_text, assistant_text, audio_url }
     Browser->>API: GET /api/audio/agent_output.wav
     API-->>Browser: WAV file
-    Browser->>Browser: Play audio
+    Browser->>Browser: Play audio via HTML5 Audio API
 ```
 
 ### PDF Upload and Ingestion
@@ -191,7 +190,7 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     Start([User message received]) --> AddHistory[Add to ConversationManager]
-    AddHistory --> CallLLM[Call OpenAI gpt-4.1-mini\nwith full history]
+    AddHistory --> CallLLM["Call OpenAI gpt-4.1-mini\nwith full history + system prompt"]
     CallLLM --> HasToolCalls{Tool calls\nin response?}
 
     HasToolCalls -- Yes --> ExecTool[Execute each tool\nin order]
@@ -204,6 +203,31 @@ flowchart TD
     FinalResponse --> AddAssistant[Add to conversation history]
     AddAssistant --> TTS([Pass to TextToSpeech])
 ```
+
+## Error Handling
+
+All error messages are centralized in the `ErrorMessages` class inside `src/backend/core/constants.py`. This is the single source of truth for every exception string raised across the backend — no hardcoded strings in individual modules.
+
+```mermaid
+graph LR
+    A["ErrorMessages\nsrc/backend/core/constants.py"]
+    A --> B["openai_provider.py"]
+    A --> C["transcriber.py"]
+    A --> D["speaker.py"]
+    A --> E["voice_manager.py"]
+    A --> F["main.py"]
+```
+
+### Error Categories
+
+| Category | Constants |
+|---|---|
+| Generic | `GENERIC`, `UNEXPECTED` |
+| API / OpenAI | `MISSING_OPENAI_API_KEY`, `NO_LLM_CHOICES`, `API_CONNECTION_FAILED`, `API_GENERATION_FAILED` |
+| Tool Execution | `TOOL_EXECUTION_FAILED`, `TOOL_NOT_FOUND` |
+| STT | `AUDIO_FILE_NOT_FOUND`, `TRANSCRIPTION_FAILED`, `EMPTY_TEXT_INPUT` |
+| TTS / Voice | `PIPER_DOWNLOAD_FAILED`, `PIPER_NOT_FOUND_AFTER_DOWNLOAD`, `UNSUPPORTED_OS_FOR_PIPER`, `VOICE_NOT_IN_REGISTRY`, `VOICE_DOWNLOAD_FAILED`, `VOICE_MODEL_MISSING_AFTER_DOWNLOAD`, `PIPER_EXECUTION_FAILED`, `AUDIO_GENERATION_FAILED` |
+| API Endpoints | `AUDIO_FILE_NOT_FOUND_ENDPOINT`, `NO_SPEECH_DETECTED` |
 
 ## Database Schema
 
@@ -241,7 +265,7 @@ All configuration is loaded from environment variables via `Settings` in `src/ba
 | `TAVILY_API_KEY` | Optional | — | Required for the web search tool |
 | `WEATHERAPI_KEY` | Optional | — | Required for the weather tool (OpenWeatherMap key) |
 | `LOG_LEVEL` | Optional | `INFO` | Python logging level |
-| `USE_BROWSER_AUDIO` | Optional | `True` | If `True`, TTS audio is served over HTTP; if `False`, played locally via system audio |
+| `USE_BROWSER_AUDIO` | Optional | `True` | TTS audio is always served over HTTP to the browser. Local system audio playback has been removed. |
 
 ## Technology Stack
 
