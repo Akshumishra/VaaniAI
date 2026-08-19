@@ -15,11 +15,19 @@ else:
 class Settings:
     """Global configuration settings."""
     HF_TOKEN = os.getenv("HF_TOKEN")
+    OPEN_API_KEY = os.getenv("OPEN_API_KEY")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    WEATHER_API = os.getenv("WEATHER_API")
+    TAVILY_API = os.getenv("TAVILY_API")
+    WEATHER_URL = os.getenv("WEATHER_URL")
+    TAVILY_URL = os.getenv("TAVILY_URL")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     
     @classmethod
     def validate(cls):
         if not cls.HF_TOKEN:
             logger.warning("HF_TOKEN is not set in the environment.")
+        if not cls.GEMINI_API_KEY:
+            logger.warning("GEMINI_API_KEY is not set in the environment.")
 
 Settings.validate()

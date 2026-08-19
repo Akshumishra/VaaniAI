@@ -10,15 +10,15 @@ def main():
     setup_logging()
     
     recorder = AudioRecorder()
-    transcriber = AudioTranscriber(model_name=STT.model_name)
+    transcriber = AudioTranscriber(model_name=STT.MODEL_NAME)
     
-    Paths.generated_dir.mkdir(exist_ok=True)
-    audio_file_path = Paths.generated_dir / Paths.audio_filename
+    Paths.GENERATED_DIR.mkdir(exist_ok=True)
+    audio_file_path = Paths.GENERATED_DIR / Paths.AUDIO_FILENAME
     
     print("Recording...")
     try:
         saved_path = recorder.record_audio(
-            duration_seconds=Recording.default_duration_seconds,
+            duration_seconds=Recording.DEFAULT_DURATION_SECONDS,
             output_path=audio_file_path
         )
         print("Recording complete.")

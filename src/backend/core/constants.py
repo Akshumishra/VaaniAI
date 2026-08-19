@@ -7,7 +7,7 @@ class Paths:
     GENERATED_DIR = BASE_DIR / "generated"
     MODELS_DIR = BASE_DIR / "models"
     BIN_DIR = BASE_DIR / "bin"
-    ENV_PATH = SRC_DIR / ".env"
+    ENV_PATH = BASE_DIR / ".env"
     AUDIO_FILENAME = "audio.wav"
 
 class Audio:
