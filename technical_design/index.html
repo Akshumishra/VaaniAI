@@ -1,0 +1,999 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../introduction/">
+      
+      
+        <link rel="next" href="../setup/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Technical Design - VaaniAI</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#technical-design" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="VaaniAI" class="md-header__button md-logo" aria-label="VaaniAI" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            VaaniAI
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Technical Design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../introduction/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Technical Design
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../setup/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Local Setup
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="VaaniAI" class="md-nav__button md-logo" aria-label="VaaniAI" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    VaaniAI
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Design
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#system-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#voice-chat-turn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Voice Chat Turn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf-upload-and-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PDF Upload and Ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent-tool-calling-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Tool-Calling Loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Schema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#entity-relationship-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entity Relationship Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technology Stack
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="technical-design">Technical Design</h1>
+<h2 id="system-architecture">System Architecture</h2>
+<p>The diagram below shows the high-level component layout of VaaniAI.</p>
+<pre class="mermaid"><code>graph TD
+    Browser["Browser (Frontend)"]
+
+    subgraph FastAPI Backend
+        API["API Layer\n(src/backend/api/main.py)"]
+        STT["AudioTranscriber\n(OpenAI Whisper API)"]
+        Agent["VaaniAI Agent\n(gpt-4.1-mini)"]
+        TTS["TextToSpeech\n(Piper TTS)"]
+        ConvMgr["ConversationManager"]
+
+        subgraph Tools
+            WebSearch["Web Search\n(Tavily)"]
+            Weather["Weather\n(OpenWeatherMap)"]
+            PDFSearch["PDF Search\n(RAG)"]
+        end
+
+        subgraph RAG Pipeline
+            PDFStore["PDFStore\n(SentenceTransformer)"]
+            DBMgr["DatabaseManager\n(Hybrid Search)"]
+        end
+    end
+
+    PostgreSQL[("PostgreSQL\n+ pgvector\ndocument_chunks")]
+
+    Browser -- "POST /api/chat (audio)" --&gt; API
+    Browser -- "POST /api/upload-pdf (pdf)" --&gt; API
+    API --&gt; STT
+    STT --&gt; Agent
+    Agent --&gt; ConvMgr
+    Agent --&gt; WebSearch
+    Agent --&gt; Weather
+    Agent --&gt; PDFSearch
+    PDFSearch --&gt; PDFStore
+    PDFStore --&gt; DBMgr
+    API --&gt; PDFStore
+    DBMgr &lt;--&gt; PostgreSQL
+    Agent --&gt; TTS
+    TTS -- "GET /api/audio/..." --&gt; Browser</code></pre>
+<h2 id="project-structure">Project Structure</h2>
+<div class="highlight"><pre><span></span><code>VaaniAI/
+├── src/
+│   ├── backend/
+│   │   ├── api/
+│   │   │   └── main.py              # FastAPI application, all HTTP endpoints
+│   │   ├── assistant/
+│   │   │   ├── stt/
+│   │   │   │   ├── transcriber.py   # OpenAI Whisper transcription
+│   │   │   │   └── exceptions.py
+│   │   │   └── tts/
+│   │   │       ├── speaker.py       # Piper TTS subprocess wrapper
+│   │   │       ├── voice_manager.py # Piper binary and model management
+│   │   │       └── exceptions.py
+│   │   ├── core/
+│   │   │   ├── constants.py         # Path constants, audio/STT/TTS/LLM config values
+│   │   │   ├── setting.py           # Environment variable loader (Settings class)
+│   │   │   └── logger.py
+│   │   ├── database/
+│   │   │   ├── models.py            # SQLAlchemy ORM model (DocumentChunk)
+│   │   │   └── db_manager.py        # DB init, save, and hybrid search logic
+│   │   └── llm/
+│   │       ├── agent_core/
+│   │       │   ├── agent.py         # Base Agent class with tool-calling loop
+│   │       │   ├── conversation.py  # ConversationManager (history + trimming)
+│   │       │   ├── tools.py         # Tool wrapper class
+│   │       │   ├── arg_schema.py    # Tool argument schema builder
+│   │       │   ├── prompts.py       # Default system prompt
+│   │       │   └── constants.py
+│   │       ├── vaani_agent/
+│   │       │   ├── agent.py         # VaaniAI subclass (pre-configured agent)
+│   │       │   ├── prompt.py        # VaaniAI system prompt
+│   │       │   └── constant.py      # VaaniAI model, temperature, iteration config
+│   │       ├── providers/
+│   │       │   └── openai_provider.py
+│   │       ├── rag/
+│   │       │   └── pdf_store.py     # PDF chunking, embedding, and search
+│   │       └── tools/
+│   │           ├── web_search.py
+│   │           ├── weather.py
+│   │           └── pdf_search.py
+│   └── frontend/
+│       ├── index.html
+│       ├── app.js
+│       └── style.css
+├── docs/                            # MkDocs documentation source
+├── tests/
+├── pyproject.toml
+└── mkdocs.yml
+</code></pre></div>
+<h2 id="api-endpoints">API Endpoints</h2>
+<p>The FastAPI application is defined in <code>src/backend/api/main.py</code>. It exposes three endpoints:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/chat</code></td>
+<td>Receives a <code>.wav</code> audio upload, transcribes it, runs the agent, returns text and audio URL</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/audio/{filename}</code></td>
+<td>Serves the generated TTS <code>.wav</code> file</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/upload-pdf</code></td>
+<td>Receives a PDF, computes its hash, ingests it if new, streams status text back</td>
+</tr>
+</tbody>
+</table>
+<p>The frontend HTML/JS/CSS is served under <code>/</code> via FastAPI's <code>StaticFiles</code> mount.</p>
+<h2 id="data-flow">Data Flow</h2>
+<h3 id="voice-chat-turn">Voice Chat Turn</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Browser
+    participant API as FastAPI API
+    participant STT as AudioTranscriber
+    participant LLM as VaaniAI Agent
+    participant Tool as Tool (optional)
+    participant TTS as TextToSpeech
+
+    Browser-&gt;&gt;API: POST /api/chat (audio blob)
+    API-&gt;&gt;API: Save to user_input.wav
+    API-&gt;&gt;STT: transcribe(audio_path)
+    STT-&gt;&gt;STT: OpenAI Whisper API call
+    STT--&gt;&gt;API: Transcribed text
+
+    API-&gt;&gt;LLM: invoke(conversation_history)
+    loop Agent loop (max 10 iterations)
+        LLM-&gt;&gt;LLM: Call OpenAI gpt-4.1-mini
+        alt Tool call requested
+            LLM-&gt;&gt;Tool: execute tool (web_search / weather / pdf_search)
+            Tool--&gt;&gt;LLM: Tool result appended to history
+        else Plain text response
+            LLM--&gt;&gt;API: Final response text
+        end
+    end
+
+    API-&gt;&gt;TTS: speak(response_text, output_path)
+    TTS-&gt;&gt;TTS: Run Piper subprocess
+    TTS--&gt;&gt;API: Path to agent_output.wav
+
+    API--&gt;&gt;Browser: { user_text, assistant_text, audio_url }
+    Browser-&gt;&gt;API: GET /api/audio/agent_output.wav
+    API--&gt;&gt;Browser: WAV file
+    Browser-&gt;&gt;Browser: Play audio</code></pre>
+<h3 id="pdf-upload-and-ingestion">PDF Upload and Ingestion</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Browser
+    participant API as FastAPI API
+    participant PDFStore
+    participant DB as DatabaseManager
+    participant PG as PostgreSQL
+
+    Browser-&gt;&gt;API: POST /api/upload-pdf (pdf file)
+    API-&gt;&gt;API: Compute SHA-256 hash
+
+    API-&gt;&gt;DB: check_document_exists(hash)
+    DB-&gt;&gt;PG: Query document_chunks WHERE file_hash = hash
+    PG--&gt;&gt;DB: Result
+
+    alt Hash already exists (cache hit)
+        DB--&gt;&gt;API: True
+        API-&gt;&gt;PDFStore: Set active_file_hash
+        API--&gt;&gt;Browser: Stream "Document already processed. Ready."
+    else New document
+        DB--&gt;&gt;API: False
+        API-&gt;&gt;PDFStore: add_pdf_generator(path, hash, filename)
+        PDFStore--&gt;&gt;Browser: Stream "Extracting text..."
+        PDFStore-&gt;&gt;PDFStore: pypdf extracts text per page
+        PDFStore-&gt;&gt;PDFStore: Chunk text (newline split or 500-char fixed)
+        PDFStore--&gt;&gt;Browser: Stream "Generating embeddings..."
+        PDFStore-&gt;&gt;PDFStore: SentenceTransformer encodes all chunks
+        PDFStore-&gt;&gt;DB: save_chunks(metadata, chunks, embeddings, hash)
+        DB-&gt;&gt;PG: INSERT INTO document_chunks
+        PG--&gt;&gt;DB: OK
+        PDFStore--&gt;&gt;Browser: Stream "Ready."
+    end</code></pre>
+<h2 id="agent-tool-calling-loop">Agent Tool-Calling Loop</h2>
+<pre class="mermaid"><code>flowchart TD
+    Start([User message received]) --&gt; AddHistory[Add to ConversationManager]
+    AddHistory --&gt; CallLLM[Call OpenAI gpt-4.1-mini\nwith full history]
+    CallLLM --&gt; HasToolCalls{Tool calls\nin response?}
+
+    HasToolCalls -- Yes --&gt; ExecTool[Execute each tool\nin order]
+    ExecTool --&gt; AppendResult[Append tool results\nto history as role:tool]
+    AppendResult --&gt; CheckIter{Max iterations\nreached?}
+    CheckIter -- No --&gt; CallLLM
+    CheckIter -- Yes --&gt; Error([Return error message])
+
+    HasToolCalls -- No --&gt; FinalResponse[Return plain text response]
+    FinalResponse --&gt; AddAssistant[Add to conversation history]
+    AddAssistant --&gt; TTS([Pass to TextToSpeech])</code></pre>
+<h2 id="database-schema">Database Schema</h2>
+<p>VaaniAI uses a single PostgreSQL table for RAG storage.</p>
+<h3 id="entity-relationship-diagram">Entity Relationship Diagram</h3>
+<pre class="mermaid"><code>erDiagram
+    DOCUMENT_CHUNKS {
+        integer id PK
+        text document_name
+        text file_hash
+        integer page_number
+        text chunk_text
+        vector_768 embedding
+    }</code></pre>
+<p><strong>Notes:</strong></p>
+<ul>
+<li><code>file_hash</code> stores the SHA-256 hex digest of the original PDF file's byte content. It is indexed for fast lookups and scopes all search queries to a single document.</li>
+<li><code>embedding</code> is a 768-dimensional float vector produced by the <code>all-mpnet-base-v2</code> SentenceTransformer model, stored via the <code>pgvector</code> extension (<code>Vector(768)</code>).</li>
+<li>There are no foreign keys. Each row is a self-contained chunk. Documents are identified logically by <code>file_hash</code>, and only one document (the most recently uploaded) is treated as "active" per server session.</li>
+</ul>
+<h2 id="configuration">Configuration</h2>
+<p>All configuration is loaded from environment variables via <code>Settings</code> in <code>src/backend/core/setting.py</code>. The <code>.env</code> file is loaded automatically from the project root.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OPENAI_API_KEY</code></td>
+<td>Yes</td>
+<td>—</td>
+<td>Used for Whisper transcription and LLM calls</td>
+</tr>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td>Yes</td>
+<td><code>postgresql://postgres:postgres@localhost:5432/postgres</code></td>
+<td>PostgreSQL connection string</td>
+</tr>
+<tr>
+<td><code>HF_TOKEN</code></td>
+<td>Yes (first run)</td>
+<td>—</td>
+<td>Hugging Face token for downloading the Piper voice model</td>
+</tr>
+<tr>
+<td><code>TAVILY_API_KEY</code></td>
+<td>Optional</td>
+<td>—</td>
+<td>Required for the web search tool</td>
+</tr>
+<tr>
+<td><code>WEATHERAPI_KEY</code></td>
+<td>Optional</td>
+<td>—</td>
+<td>Required for the weather tool (OpenWeatherMap key)</td>
+</tr>
+<tr>
+<td><code>LOG_LEVEL</code></td>
+<td>Optional</td>
+<td><code>INFO</code></td>
+<td>Python logging level</td>
+</tr>
+<tr>
+<td><code>USE_BROWSER_AUDIO</code></td>
+<td>Optional</td>
+<td><code>True</code></td>
+<td>If <code>True</code>, TTS audio is served over HTTP; if <code>False</code>, played locally via system audio</td>
+</tr>
+</tbody>
+</table>
+<h2 id="technology-stack">Technology Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Library / Service</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web framework</td>
+<td>FastAPI + Uvicorn</td>
+</tr>
+<tr>
+<td>Speech-to-text</td>
+<td>OpenAI Whisper API (<code>whisper-1</code>)</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>OpenAI Chat Completions API (<code>gpt-4.1-mini</code>)</td>
+</tr>
+<tr>
+<td>Text-to-speech</td>
+<td>Piper TTS (<code>en_US-lessac-medium</code> ONNX model)</td>
+</tr>
+<tr>
+<td>Embeddings</td>
+<td><code>sentence-transformers</code> (<code>all-mpnet-base-v2</code>)</td>
+</tr>
+<tr>
+<td>Vector database</td>
+<td>PostgreSQL + <code>pgvector</code></td>
+</tr>
+<tr>
+<td>ORM</td>
+<td>SQLAlchemy</td>
+</tr>
+<tr>
+<td>PDF parsing</td>
+<td><code>pypdf</code></td>
+</tr>
+<tr>
+<td>Web search</td>
+<td>Tavily API (<code>tavily-python</code>)</td>
+</tr>
+<tr>
+<td>Weather</td>
+<td>OpenWeatherMap API (<code>httpx</code>)</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>HTML / Vanilla JS / CSS</td>
+</tr>
+<tr>
+<td>Dependency management</td>
+<td><code>uv</code></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
