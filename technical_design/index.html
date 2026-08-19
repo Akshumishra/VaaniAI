@@ -504,6 +504,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-categories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Categories
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#database-schema" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -655,13 +683,13 @@
 │   │   ├── assistant/
 │   │   │   ├── stt/
 │   │   │   │   ├── transcriber.py   # OpenAI Whisper transcription
-│   │   │   │   └── exceptions.py
+│   │   │   │   └── exceptions.py    # TranscriptionError, AudioValidationError
 │   │   │   └── tts/
-│   │   │       ├── speaker.py       # Piper TTS subprocess wrapper
-│   │   │       ├── voice_manager.py # Piper binary and model management
-│   │   │       └── exceptions.py
+│   │   │       ├── speaker.py       # Piper TTS subprocess wrapper (browser-only output)
+│   │   │       ├── voice_manager.py # Piper binary and voice model management
+│   │   │       └── exceptions.py    # TextToSpeechError, VoiceNotFoundError
 │   │   ├── core/
-│   │   │   ├── constants.py         # Path constants, audio/STT/TTS/LLM config values
+│   │   │   ├── constants.py         # All app constants + ErrorMessages (single source of truth)
 │   │   │   ├── setting.py           # Environment variable loader (Settings class)
 │   │   │   └── logger.py
 │   │   ├── database/
@@ -673,8 +701,7 @@
 │   │       │   ├── conversation.py  # ConversationManager (history + trimming)
 │   │       │   ├── tools.py         # Tool wrapper class
 │   │       │   ├── arg_schema.py    # Tool argument schema builder
-│   │       │   ├── prompts.py       # Default system prompt
-│   │       │   └── constants.py
+│   │       │   └── constants.py     # Agent defaults (model, temperature, iterations)
 │   │       ├── vaani_agent/
 │   │       │   ├── agent.py         # VaaniAI subclass (pre-configured agent)
 │   │       │   ├── prompt.py        # VaaniAI system prompt
@@ -715,7 +742,7 @@
 <tr>
 <td><code>GET</code></td>
 <td><code>/api/audio/{filename}</code></td>
-<td>Serves the generated TTS <code>.wav</code> file</td>
+<td>Serves the generated TTS <code>.wav</code> file to the browser</td>
 </tr>
 <tr>
 <td><code>POST</code></td>
@@ -742,7 +769,7 @@
     STT--&gt;&gt;API: Transcribed text
 
     API-&gt;&gt;LLM: invoke(conversation_history)
-    loop Agent loop (max 10 iterations)
+    loop Agent loop (max 3 iterations)
         LLM-&gt;&gt;LLM: Call OpenAI gpt-4.1-mini
         alt Tool call requested
             LLM-&gt;&gt;Tool: execute tool (web_search / weather / pdf_search)
@@ -759,7 +786,7 @@
     API--&gt;&gt;Browser: { user_text, assistant_text, audio_url }
     Browser-&gt;&gt;API: GET /api/audio/agent_output.wav
     API--&gt;&gt;Browser: WAV file
-    Browser-&gt;&gt;Browser: Play audio</code></pre>
+    Browser-&gt;&gt;Browser: Play audio via HTML5 Audio API</code></pre>
 <h3 id="pdf-upload-and-ingestion">PDF Upload and Ingestion</h3>
 <pre class="mermaid"><code>sequenceDiagram
     participant Browser
@@ -795,7 +822,7 @@
 <h2 id="agent-tool-calling-loop">Agent Tool-Calling Loop</h2>
 <pre class="mermaid"><code>flowchart TD
     Start([User message received]) --&gt; AddHistory[Add to ConversationManager]
-    AddHistory --&gt; CallLLM[Call OpenAI gpt-4.1-mini\nwith full history]
+    AddHistory --&gt; CallLLM["Call OpenAI gpt-4.1-mini\nwith full history + system prompt"]
     CallLLM --&gt; HasToolCalls{Tool calls\nin response?}
 
     HasToolCalls -- Yes --&gt; ExecTool[Execute each tool\nin order]
@@ -807,6 +834,50 @@
     HasToolCalls -- No --&gt; FinalResponse[Return plain text response]
     FinalResponse --&gt; AddAssistant[Add to conversation history]
     AddAssistant --&gt; TTS([Pass to TextToSpeech])</code></pre>
+<h2 id="error-handling">Error Handling</h2>
+<p>All error messages are centralized in the <code>ErrorMessages</code> class inside <code>src/backend/core/constants.py</code>. This is the single source of truth for every exception string raised across the backend — no hardcoded strings in individual modules.</p>
+<pre class="mermaid"><code>graph LR
+    A["ErrorMessages\nsrc/backend/core/constants.py"]
+    A --&gt; B["openai_provider.py"]
+    A --&gt; C["transcriber.py"]
+    A --&gt; D["speaker.py"]
+    A --&gt; E["voice_manager.py"]
+    A --&gt; F["main.py"]</code></pre>
+<h3 id="error-categories">Error Categories</h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Constants</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generic</td>
+<td><code>GENERIC</code>, <code>UNEXPECTED</code></td>
+</tr>
+<tr>
+<td>API / OpenAI</td>
+<td><code>MISSING_OPENAI_API_KEY</code>, <code>NO_LLM_CHOICES</code>, <code>API_CONNECTION_FAILED</code>, <code>API_GENERATION_FAILED</code></td>
+</tr>
+<tr>
+<td>Tool Execution</td>
+<td><code>TOOL_EXECUTION_FAILED</code>, <code>TOOL_NOT_FOUND</code></td>
+</tr>
+<tr>
+<td>STT</td>
+<td><code>AUDIO_FILE_NOT_FOUND</code>, <code>TRANSCRIPTION_FAILED</code>, <code>EMPTY_TEXT_INPUT</code></td>
+</tr>
+<tr>
+<td>TTS / Voice</td>
+<td><code>PIPER_DOWNLOAD_FAILED</code>, <code>PIPER_NOT_FOUND_AFTER_DOWNLOAD</code>, <code>UNSUPPORTED_OS_FOR_PIPER</code>, <code>VOICE_NOT_IN_REGISTRY</code>, <code>VOICE_DOWNLOAD_FAILED</code>, <code>VOICE_MODEL_MISSING_AFTER_DOWNLOAD</code>, <code>PIPER_EXECUTION_FAILED</code>, <code>AUDIO_GENERATION_FAILED</code></td>
+</tr>
+<tr>
+<td>API Endpoints</td>
+<td><code>AUDIO_FILE_NOT_FOUND_ENDPOINT</code>, <code>NO_SPEECH_DETECTED</code></td>
+</tr>
+</tbody>
+</table>
 <h2 id="database-schema">Database Schema</h2>
 <p>VaaniAI uses a single PostgreSQL table for RAG storage.</p>
 <h3 id="entity-relationship-diagram">Entity Relationship Diagram</h3>
@@ -877,7 +948,7 @@
 <td><code>USE_BROWSER_AUDIO</code></td>
 <td>Optional</td>
 <td><code>True</code></td>
-<td>If <code>True</code>, TTS audio is served over HTTP; if <code>False</code>, played locally via system audio</td>
+<td>TTS audio is always served over HTTP to the browser. Local system audio playback has been removed.</td>
 </tr>
 </tbody>
 </table>

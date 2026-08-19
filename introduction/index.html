@@ -596,7 +596,7 @@
 <li><strong>Temperature</strong>: <code>0.5</code></li>
 <li><strong>System Prompt</strong>: Instructs the agent on its role, available tools, and output format. The prompt is defined in <code>src/backend/llm/vaani_agent/prompt.py</code>.</li>
 </ul>
-<p>Conversation history across turns is managed by <code>ConversationManager</code> (<code>src/backend/llm/agent_core/conversation.py</code>), which keeps the last 10 messages in memory (excluding the system prompt) to avoid exceeding token limits.</p>
+<p>Conversation history across turns is managed by <code>ConversationManager</code> (<code>src/backend/llm/agent_core/conversation.py</code>), which keeps the last 5 messages in memory (excluding the system prompt) to avoid exceeding token limits.</p>
 <h2 id="tools">Tools</h2>
 <h3 id="web-search">Web Search</h3>
 <p>The web search tool uses the Tavily Python client (<code>tavily-python</code>) to perform a <code>basic</code> depth search and return up to 3 results. Each result includes a title, URL, and a content snippet. Results are formatted as a plain-text string and returned to the agent.</p>
