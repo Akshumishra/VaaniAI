@@ -13,3 +13,12 @@ wheels/
 .env
 
 .python-version
+
+# Generated files
+generated/
+
+# Agent rule book
+AGENT.md
+
+# logs
+logs/
