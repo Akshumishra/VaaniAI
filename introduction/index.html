@@ -629,7 +629,7 @@ Relevant file: <code>src/backend/llm/tools/weather.py</code></p>
 <li><strong>Vector search</strong>: ranks chunks by cosine distance between the query embedding and stored embeddings, retrieving the top 10.</li>
 <li><strong>Full-text search (FTS)</strong>: uses PostgreSQL's <code>plainto_tsquery</code> and <code>to_tsvector</code> (English dictionary) to find and rank lexically matching chunks, retrieving the top 10.</li>
 </ul>
-<p>The two result sets are merged using <strong>Reciprocal Rank Fusion (RRF)</strong> with a constant <code>k=60</code>. Each chunk receives a combined score of <code>1/(k + rank + 1)</code> from each list it appears in. The top <code>top_k</code> (default: 3) chunks by combined score are returned to the agent.</p>
+<p>The two result sets are merged using a <strong>60-40 weighted ranking</strong>. Each chunk receives a normalized rank score, with Vector search results weighted at 60% and Full-text search results weighted at 40%. The top <code>top_k</code> (default: 3) chunks by combined score are returned to the agent.</p>
 <p>Relevant file: <code>src/backend/database/db_manager.py</code></p>
 <h2 id="text-to-speech-tts">Text-to-Speech (TTS)</h2>
 <p>After the agent produces its final text response, <code>TextToSpeech.speak()</code> is called. It invokes the Piper binary as a subprocess, passing the response text via stdin. Piper writes a <code>.wav</code> file to <code>generated/api_temp/agent_output.wav</code>.</p>
